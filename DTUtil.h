@@ -38,6 +38,8 @@ BOOL DTSetIvar(id obj, const char *name, id value);
 
 /// 依次尝试调用无参 getter，返回第一个非 nil 结果。
 id DTCallGetter(id obj, NSArray<NSString *> *names);
+/// 按方法真实返回类型取整数值。标量属性千万别走 DTCallGetter / performSelector:。
+BOOL DTIntValue(id obj, NSArray<NSString *> *names, NSInteger *out);
 
 /// 依次尝试调用单参 setter，返回 YES 表示成功。
 BOOL DTCallSetter(id obj, NSArray<NSString *> *names, id arg);

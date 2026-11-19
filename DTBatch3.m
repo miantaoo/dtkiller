@@ -27,6 +27,32 @@ static NSString *DTWrapFrom(id wrap)
     return [v isKindOfClass:[NSString class]] ? v : nil;
 }
 
+/// OnWCToHongbaoCommonResponse:Request: 的 response 是红包 PB 响应对象，**不是** CMessageWrap。
+/// 直接把它喂给 OpenRedEnvelopesRequest: 会读不到字段然后崩，所以先把真正的消息 wrap 揪出来：
+/// 1) 参数本身就像消息（能读 m_nsFromUsr / m_uiMessageType）
+/// 2) 否则翻它身上挂的 wrap 类 ivar（一层就够，再深就是猜了）
+/// 全部失败就放弃这一单，记一行日志 —— 宁可漏抢，不能崩。
+static id DTPickMsgWrap(id a, id b)
+{
+    NSArray *objs = @[a ?: [NSNull null], b ?: [NSNull null]];
+    for (id o in objs) {
+        if (o == [NSNull null]) continue;
+        if (DTWrapFrom(o) || DTWrapType(o) >= 0) return o;
+    }
+
+    NSArray<NSString *> *names = @[@"m_msgWrap", @"m_oMsgWrap", @"m_messageWrap",
+                                   @"m_wrap", @"m_oWrap", @"m_msg", @"m_oMessage", @"msgWrap"];
+    for (id o in objs) {
+        if (o == [NSNull null]) continue;
+        for (NSString *n in names) {
+            id v = DTGetIvar(o, n.UTF8String);
+            if (!v) continue;
+            if (DTWrapFrom(v) || DTWrapType(v) >= 0) return v;
+        }
+    }
+    return nil;
+}
+
 static NSString *DTWrapContent(id wrap)
 {
     id v = DTGetIvar(wrap, "m_nsContent");
@@ -132,7 +158,14 @@ static NSString *DTRedMsgId(id wrap)
         }
         if ([v isKindOfClass:[NSString class]] && [(NSString *)v length]) return v;
     }
-    return nil;
+    // 兜底：服务端 id / 本地 id / 创建时间 拼一个稳定 key。
+    // 不能用「发送者哈希」代替 —— 同一个人发的第二个红包会被当成重复而永远不抢。
+    NSMutableString *k = [NSMutableString string];
+    for (NSString *fn in @[@"m_n64MesSvrID", @"m_uiMesLocalID", @"m_uiCreateTime"]) {
+        id v = DTGetIvar(wrap, fn.UTF8String);
+        if (v && [v longLongValue] != 0) [k appendFormat:@"%@|", v];
+    }
+    return k.length ? k : nil;
 }
 
 /// 真正发领取请求。8.x 上 OpenRedEnvelopesRequest: 直接吃 msgWrap。
@@ -155,7 +188,11 @@ static BOOL DTRedSendOpen(id mgr, id wrap, NSString *msgId)
 static void DTRedScheduleOpen(id mgr, id wrap)
 {
     NSString *msgId = DTRedMsgId(wrap);
-    if (!msgId) msgId = [NSString stringWithFormat:@"anon-%llu", DTHash(DTWrapFrom(wrap) ?: @"")];
+    if (!msgId) {
+        // 连 ID 都取不到就别抢了：随便编一个 key 会让去重表失去意义。
+        DTLog(@"red: 无法取到消息 id，跳过这条");
+        return;
+    }
 
     if ([gRedSeen containsObject:msgId]) return;
     [gRedSeen addObject:msgId];
@@ -175,16 +212,15 @@ static void DTRedScheduleOpen(id mgr, id wrap)
     });
 }
 
-/// 红包消息统一从 OnWCToHongbaoCommonResponse:Request: 出来。
-static void DTRedOnCommonResponse(id self, SEL _cmd, id response, id request)
+/// 红包消息处理体。原实现转发与开关判断都在 DTHBDispatch 里做。
+static void DTRedHandle(id self, id response, id request)
 {
-    IMP o = DTOrigFor(object_getClass(self), _cmd);
-    if (o) ((void (*)(id, SEL, id, id))o)(self, _cmd, response, request);
-
-    if (!gRedOn) return;
-
-    id wrap = response;
-    if (!wrap) return;
+    id wrap = DTPickMsgWrap(response, request);
+    if (!wrap) {
+        DTLog(@"red: response(%@)/request(%@) 里没有 msgWrap，跳过",
+              NSStringFromClass([response class]), NSStringFromClass([request class]));
+        return;
+    }
 
     NSString *from = DTWrapFrom(wrap);
     if (!DTRedGroupAllowed(from)) {
@@ -211,13 +247,7 @@ static void DTRedInstall(void)
     if (!gRedSeen)  gRedSeen  = [NSMutableSet set];
     if (!gRedState) gRedState = [NSMutableDictionary dictionary];
 
-    int n = 0;
-    for (NSString *cn in DTOwnerClassesForSelector("OnWCToHongbaoCommonResponse:Request:")) {
-        Class c = NSClassFromString(cn);
-        if (!c) continue;
-        if (DTHookMsg(c, sel_registerName("OnWCToHongbaoCommonResponse:Request:"),
-                      (IMP)DTRedOnCommonResponse)) n++;
-    }
+    int n = DTHBHookOnce();
     DTLog(@"red: 延迟 %.1f-%.1f 秒，指定群 %lu 个，装了 %d 个点",
           gRedMin, gRedMax, (unsigned long)gRedGroups.count, n);
 }
@@ -279,13 +309,8 @@ static void DTSendText(id mgr, NSString *to, NSString *text)
     DTLog(@"pay: 找不到发消息入口");
 }
 
-static void DTPayOnResponse(id self, SEL _cmd, id response, id request)
+static void DTPayHandle(id self, id response, id request)
 {
-    IMP o = DTOrigFor(object_getClass(self), _cmd);
-    if (o) ((void (*)(id, SEL, id, id))o)(self, _cmd, response, request);
-
-    if (!gPayReplyOn) return;
-
     id wrap = response;
     NSString *from = DTWrapFrom(wrap);
     if (!DTPayWhitelisted(from)) return;
@@ -323,18 +348,49 @@ static void DTPayReplyInstall(void)
     gPayReplyOn = YES;
     if (!gPayLast) gPayLast = [NSMutableDictionary dictionary];
 
+    int n = DTHBHookOnce();
+    DTLog(@"pay: 白名单 %lu 人，装了 %d 个点", (unsigned long)gPayList.count, n);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+#pragma mark - 红包/转账统一闸门
+// ═══════════════════════════════════════════════════════════════════════════
+
+// 同一对 selector 有三个模块想要：抢红包、收款回复、记账本。
+// 以前各装各的，后装的把先装的当 orig → 一收红包就自递归炸栈。
+// 现在只有一个 hook，内部按开关顺序调各处理体。
+static DTHBExtraFn gHBExtra;
+static NSMutableSet<NSString *> *gHBHooked;
+
+void DTSetHongbaoExtraHandler(DTHBExtraFn fn) { gHBExtra = fn; }
+
+static void DTHBDispatch(id self, SEL _cmd, id response, id request)
+{
+    IMP o = DTOrigFor(object_getClass(self), _cmd);
+    if (o) ((void (*)(id, SEL, id, id))o)(self, _cmd, response, request);
+
+    if (gRedOn)      DTRedHandle(self, response, request);
+    if (gPayReplyOn) DTPayHandle(self, response, request);
+    if (gHBExtra)    gHBExtra(self, _cmd, response, request);
+}
+
+int DTHBHookOnce(void)
+{
+    if (!gHBHooked) gHBHooked = [NSMutableSet set];
+    static const char *sels[] = { "OnWCToHongbaoCommonResponse:Request:", "OnTransferResponse:Request:" };
     int n = 0;
-    static const char *sels[] = {
-        "OnWCToHongbaoCommonResponse:Request:",
-        "OnTransferResponse:Request:",
-    };
     for (size_t i = 0; i < sizeof(sels) / sizeof(sels[0]); i++) {
         for (NSString *cn in DTOwnerClassesForSelector(sels[i])) {
+            NSString *key = [NSString stringWithFormat:@"%s>%@", sels[i], cn];
+            if ([gHBHooked containsObject:key]) continue;
             Class c = NSClassFromString(cn);
-            if (c && DTHookMsg(c, sel_registerName(sels[i]), (IMP)DTPayOnResponse)) n++;
+            if (c && DTHookMsg(c, sel_registerName(sels[i]), (IMP)DTHBDispatch)) {
+                [gHBHooked addObject:key];
+                n++;
+            }
         }
     }
-    DTLog(@"pay: 白名单 %lu 人，装了 %d 个点", (unsigned long)gPayList.count, n);
+    return n;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

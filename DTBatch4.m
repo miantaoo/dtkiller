@@ -88,23 +88,25 @@ static void DTLedgerRecord(NSString *ident, NSString *kind, double yuan, NSStrin
     DTLog(@"ledger: 记 +%.2f 元（%@ / %@）", yuan, kind, peer ?: @"");
 }
 
-static void DTLedgerOnResponse(id self, SEL _cmd, id response, id request)
+/// 记账本处理体。转发原实现由 DTHBDispatch 统一负责，这里只管记账。
+static void DTLedgerHandle(id self, SEL _cmd, id response, id request)
 {
-    IMP o = DTOrigFor(object_getClass(self), _cmd);
-    if (o) ((void (*)(id, SEL, id, id))o)(self, _cmd, response, request);
     if (!gLedgerOn || !response) return;
 
     NSString *from = DTIvarStr(response, "m_nsFromUsr");
     NSInteger type = DTIvarInt(response, "m_uiMessageType");
     id fee = DTGetIvar(response, "m_lTotalFee") ?: DTGetIvar(response, "m_uiTotalFee");
     double fen = [fee respondsToSelector:@selector(doubleValue)] ? [fee doubleValue] : 0;
+    if (fen <= 0) return;
+
+    // 用入口 selector 区分红包/转账。m_uiMessageType 的 34 是语音消息，
+    // 拿它判红包会让所有红包都记成「转账」。
+    BOOL isTransfer = (strcmp(sel_getName(_cmd), "OnTransferResponse:Request:") == 0);
 
     NSString *ident = DTIvarStr(response, "m_nsMsgId");
     if (!ident) ident = [NSString stringWithFormat:@"%@-%ld-%.0f", from ?: @"", (long)type, fen];
 
-    if (fen > 0) {
-        DTLedgerRecord(ident, (type == 34 ? @"红包" : @"转账"), fen / 100.0, from, nil);
-    }
+    DTLedgerRecord(ident, isTransfer ? @"转账" : @"红包", fen / 100.0, from, nil);
 }
 
 static void DTLedgerInstall(void)
@@ -113,15 +115,10 @@ static void DTLedgerInstall(void)
     DTLedgerLoad();
     gLedgerOn = YES;
 
-    int n = 0;
-    static const char *sels[] = { "OnWCToHongbaoCommonResponse:Request:", "OnTransferResponse:Request:" };
-    for (size_t i = 0; i < sizeof(sels) / sizeof(sels[0]); i++) {
-        for (NSString *cn in DTOwnerClassesForSelector(sels[i])) {
-            Class c = NSClassFromString(cn);
-            if (c && DTHookMsg(c, sel_registerName(sels[i]), (IMP)DTLedgerOnResponse)) n++;
-        }
-    }
-    DTLog(@"ledger: 装了 %d 个点", n);
+    // 挂到统一闸门上，不自己再 hook 一次（否则会和红包/收款互相递归）
+    DTSetHongbaoExtraHandler(DTLedgerHandle);
+    int n = DTHBHookOnce();
+    DTLog(@"ledger: 挂在统一闸门上（%d 个点）", n);
 }
 
 /// 给设置页用：按月汇总

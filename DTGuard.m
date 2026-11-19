@@ -77,19 +77,36 @@ static BOOL DTIsAuthClass(NSString *cn) {
     return NO;
 }
 
-static IMP DTMakeNoHook(Class cls, SEL sel) {
-    Method m = class_getInstanceMethod(cls, sel);
+// 按真实返回类型生成「否定实现」。实例方法与类方法共用这张表。
+// 关键：返回类型不能只看 B/c，否则 @ / d / f / 整数型都会拿到 x0 里的垃圾。
+static IMP DTNoHookIMPForMethod(Method m) {
     if (!m) return NULL;
     const char *types = method_getTypeEncoding(m);
     char ret = types ? types[0] : 'v';
-    if (ret == 'B' || ret == 'c') {
-        return DTHookMsg(cls, sel, imp_implementationWithBlock(^BOOL(id self) { return NO; }));
+    switch (ret) {
+        case 'v':
+            return imp_implementationWithBlock(^(id self) {});
+        case 'B': case 'c':
+            return imp_implementationWithBlock(^BOOL(id self) { return NO; });
+        case 'f':
+            return imp_implementationWithBlock(^float(id self) { return 0.0f; });
+        case 'd':
+            return imp_implementationWithBlock(^double(id self) { return 0.0; });
+        case '@':
+            // 返回空串而不是 nil：调用方常把结果装进 @[] 或直接取 .length，
+            // getJailbreakPath / getJailbreakRootDir 都属于这种。
+            return imp_implementationWithBlock(^id(id self) { return @""; });
+        case '#':
+            return imp_implementationWithBlock(^id(id self) { return (id)Nil; });
+        default:   // i s l q I S L Q
+            return imp_implementationWithBlock(^long long(id self) { return 0; });
     }
-    if (ret == 'i' || ret == 'q' || ret == 'I' || ret == 'Q' || ret == 'd' || ret == 'f') {
-        return DTHookMsg(cls, sel, imp_implementationWithBlock(^long long(id self) { return 0; }));
-    }
-    // void 或对象：什么也不做
-    return DTHookMsg(cls, sel, imp_implementationWithBlock(^(id self) {}));
+}
+
+static IMP DTMakeNoHook(Class cls, SEL sel) {
+    Method m = class_getInstanceMethod(cls, sel);
+    if (!m) return NULL;
+    return DTHookMsg(cls, sel, DTNoHookIMPForMethod(m));
 }
 
 void DTModuleGuardInstall(void) {
@@ -119,7 +136,7 @@ void DTModuleGuardInstall(void) {
     }
 
     // ---- B 组：吞掉（文件校验 + dyld 回调注册 + app 列表上报）----
-    if (DTBool(kBlockFile, DTBool(@"DTGuardBlockReport", YES))) {   // 旧键兼容
+    if (DTBool(kBlockFile, NO) || DTBool(@"DTGuardBlockReport", NO)) {   // 旧键是并联别名，不是兜底
         for (int i = 0; kMuteSels[i]; i++) {
             const char *s = kMuteSels[i];
             for (NSString *cn in DTOwnerClassesForSelector(s)) {
@@ -151,7 +168,7 @@ void DTModuleGuardInstall(void) {
     }
 
     // ---- D 组：bundleId 伪造 ----
-    if (DTBool(kSpoofID, YES)) {
+    if (DTBool(kSpoofID, NO)) {
         for (int i = 0; kSpoofSels[i]; i++) {
             const char *s = kSpoofSels[i];
             for (NSString *cn in DTOwnerClassesForSelector(s)) {
@@ -174,19 +191,19 @@ void DTModuleGuardInstall(void) {
     }
 
     // ---- 类方法版本（有些检测放在 + 方法里）----
-    for (int i = 0; kDenySels[i]; i++) {
-        const char *s = kDenySels[i];
-        for (NSString *cn in DTWeChatClassNames()) {
-            Class c = objc_getClass(cn.UTF8String);
-            if (!c) continue;
-            Method m = class_getClassMethod(c, sel_registerName(s));
-            if (!m) continue;
-            const char *types = method_getTypeEncoding(m);
-            char ret = types ? types[0] : 'v';
-            IMP ni = (ret == 'B' || ret == 'c')
-                ? imp_implementationWithBlock(^BOOL(id self) { return NO; })
-                : imp_implementationWithBlock(^(id self) {});
-            if (DTHookClsMsg(c, sel_registerName(s), ni)) hooked++;
+    // 必须和 A 组同一个开关：原来这段写在 if (kBlockHook) 之外，
+    // 用户关掉「屏蔽 hook 校验」后类方法版本照样被 no-op，开关等于骗人。
+    if (DTBool(kBlockHook, YES)) {
+        for (int i = 0; kDenySels[i]; i++) {
+            const char *s = kDenySels[i];
+            for (NSString *cn in DTWeChatClassNames()) {
+                Class c = objc_getClass(cn.UTF8String);
+                if (!c) continue;
+                Method m = class_getClassMethod(c, sel_registerName(s));
+                if (!m) continue;
+                IMP ni = DTNoHookIMPForMethod(m);
+                if (DTHookClsMsg(c, sel_registerName(s), ni)) hooked++;
+            }
         }
     }
 

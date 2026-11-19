@@ -170,13 +170,18 @@ static BOOL gDidInstall   = NO;
     if (!vc) vc = NSClassFromString(@"MMVoIPMgr");
     if (vc) target = DTService(vc);
 
+    // 类名兜底不能把 Class 当实例用：Class 的 respondsToSelector: 查的是类方法，
+    // 后面必然一路 continue，表现为「转发了但没反应、日志也没有」。
+    // 这里仍按类名找宿主，但目标是 DTService 取到的单例实例。
     if (!target) {
         for (NSString *cn in DTWeChatClassNames()) {
             if ([cn rangeOfString:@"VoIP" options:NSCaseInsensitiveSearch].location == NSNotFound) continue;
             Class c = objc_getClass(cn.UTF8String);
             if (!c) continue;
             for (NSString *s in sels) {
-                if (class_getInstanceMethod(c, NSSelectorFromString(s))) { target = c; break; }
+                if (!class_getInstanceMethod(c, NSSelectorFromString(s))) continue;
+                target = DTService(c);
+                if (target) break;
             }
             if (target) break;
         }
@@ -241,7 +246,9 @@ static void n_report5(id self, SEL _cmd, id user, long type, id msg,
                                             type:type
                                              msg:msg
                                          display:[displayName isKindOfClass:[NSString class]] ? displayName : nil];
-        if (completion) {
+        // completion 可能是 nil、可能是 (BOOL) 或 (BOOL, NSError*) 的 block。
+        // 直接把任意 id 强转成 block 调用会读到垃圾指针（EXC_BAD_ACCESS，@try 拦不住）。
+        if ([completion isKindOfClass:NSClassFromString(@"NSBlock")]) {
             @try { ((void (^)(BOOL))completion)(YES); } @catch (__unused NSException *e) {}
         }
         return;
@@ -277,7 +284,7 @@ static void n_handlePush(id self, SEL _cmd, id content, id voipInfo, long type, 
 void DTModuleCallKitInstall(void) {
     if (gDidInstall) return;
     gDidInstall = YES;
-    if (!DTBool(kEn, YES)) { DTLog(@"callkit: disabled"); return; }
+    if (!DTBool(kEn, NO)) { DTLog(@"callkit: disabled"); return; }
 
     int n = 0;
     n += DTHookSelectorInImage("WeChat", "isDeviceCallkitAvailable", (IMP)n_alwaysYes);

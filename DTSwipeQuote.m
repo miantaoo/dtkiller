@@ -165,7 +165,7 @@ static void DTAttachSwipe(UIView *cell) {
 }
 
 void DTModuleSwipeQuoteInstall(void) {
-    if (!DTBool(kEn, YES)) { DTLog(@"swipequote: disabled"); return; }
+    if (!DTBool(kEn, NO)) { DTLog(@"swipequote: disabled"); return; }
 
     __block int n = 0;
     for (NSString *cn in DTWeChatClassNames()) {
@@ -187,7 +187,7 @@ void DTModuleSwipeQuoteInstall(void) {
         DTHookMsg(c, ls, imp_implementationWithBlock(^(id self) {
             IMP o = DTOrigFor(wc, ls);
             if (o) ((void (*)(id, SEL))o)(self, ls);
-            if (DTBool(kEn, YES)) DTAttachSwipe(self);
+            if (DTBool(kEn, NO)) DTAttachSwipe(self);
         }));
         n++;
     }

@@ -16,6 +16,9 @@
 static NSString *const kEn     = @"DTBalanceEnable";
 static NSString *const kOffset = @"DTBalanceOffset";
 static const void *kOrigKey    = &kOrigKey;
+static const void *kLastKey    = &kLastKey;   // 上次我们写回的显示值，用来判断文本是否被别人改过
+
+static BOOL DTIsBalanceVC(Class c);
 
 static BOOL DTLooksLikeMoney(NSString *s) {
     if (s.length == 0 || s.length > 20) return NO;
@@ -56,58 +59,85 @@ static NSString *DTApplyOffset(NSString *orig) {
     return out ?: orig;
 }
 
-static void DTPatchMoneyLabels(UIView *root, int *changed) {
+static void DTCollectMoneyLabels(UIView *root, NSMutableArray<UILabel *> *out) {
     if (!root) return;
     for (UIView *v in root.subviews) {
         if ([v isKindOfClass:[UILabel class]]) {
             UILabel *l = (UILabel *)v;
             // 余额一定是大字，小字（卡号、日期、提示）不动
-            if (l.font.pointSize < 18) continue;
-            NSString *cur = l.text;
-            if (!DTLooksLikeMoney(cur)) continue;
-
-            NSString *orig = objc_getAssociatedObject(l, kOrigKey);
-            if (!orig) {
-                orig = cur;
-                objc_setAssociatedObject(l, kOrigKey, cur, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            }
-            NSString *want = DTApplyOffset(orig);
-            if (![want isEqualToString:cur]) {
-                l.text = want;
-                (*changed)++;
-            }
+            if (l.font.pointSize >= 18 && DTLooksLikeMoney(l.text)) [out addObject:l];
         }
-        DTPatchMoneyLabels(v, changed);
+        DTCollectMoneyLabels(v, out);
     }
 }
 
-static void DTRunPatch(UIViewController *vc) {
-    if (!DTBool(kEn, YES)) return;
-    if (DTDouble(kOffset, 0) == 0) return;
+/// 只处理一个 label。基准值的更新规则：
+/// 文本被外部改过（≠ 上次我们写回的值）就以新文本为新基准，否则「入账 500 后
+/// 再进钱包仍显示首次余额 + 偏移」，用户会以为钱没到账。
+static void DTPatchOneLabel(UILabel *l, int *changed) {
+    NSString *cur = l.text;
+    if (!DTLooksLikeMoney(cur)) return;
 
-    int changed = 0;
-    DTPatchMoneyLabels(vc.view, &changed);
-    if (changed) DTLog(@"balance: patched %d labels on %@", changed, NSStringFromClass([vc class]));
+    NSString *orig = objc_getAssociatedObject(l, kOrigKey);
+    NSString *last = objc_getAssociatedObject(l, kLastKey);
+    if (!orig || (last && ![last isEqualToString:cur])) {
+        orig = cur;
+        objc_setAssociatedObject(l, kOrigKey, cur, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    NSString *want = DTApplyOffset(orig);
+    if (![want isEqualToString:cur]) {
+        l.text = want;
+        (*changed)++;
+    }
+    objc_setAssociatedObject(l, kLastKey, want, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-static BOOL DTIsWalletVC(Class c) {
+static void DTRunPatch(UIViewController *vc) {
+    if (!DTBool(kEn, NO)) return;
+    if (DTDouble(kOffset, 0) == 0) return;
+    if (!DTIsBalanceVC([vc class])) return;
+
+    NSMutableArray<UILabel *> *cands = [NSMutableArray array];
+    DTCollectMoneyLabels(vc.view, cands);
+    if (cands.count == 0) return;
+
+    // 只改本页字号最大的那个金额。原来会把账单/红包/理财/收款码页的数字一起加偏移，
+    // 用户看到「零钱 100、红包 50、账单 500」全变，比不改还糟。
+    [cands sortUsingComparator:^NSComparisonResult(UILabel *a, UILabel *b) {
+        if (a.font.pointSize > b.font.pointSize) return NSOrderedAscending;
+        if (a.font.pointSize < b.font.pointSize) return NSOrderedDescending;
+        return NSOrderedSame;
+    }];
+
+    int changed = 0;
+    DTPatchOneLabel(cands.firstObject, &changed);
+    if (changed) DTLog(@"balance: patched on %@", NSStringFromClass([vc class]));
+}
+
+/// 只认余额页。Wallet / WCPay / Money 覆盖太广（账单、红包、理财、收款码都在里面）。
+static BOOL DTIsBalanceVC(Class c) {
     NSString *n = NSStringFromClass(c);
-    if ([n rangeOfString:@"Balance" options:NSCaseInsensitiveSearch].location != NSNotFound) return YES;
-    if ([n rangeOfString:@"Wallet" options:NSCaseInsensitiveSearch].location != NSNotFound) return YES;
-    if ([n rangeOfString:@"WCPay" options:NSCaseInsensitiveSearch].location != NSNotFound) return YES;
-    if ([n rangeOfString:@"Money" options:NSCaseInsensitiveSearch].location != NSNotFound) return YES;
-    return NO;
+    if ([n rangeOfString:@"Balance" options:NSCaseInsensitiveSearch].location == NSNotFound) return NO;
+    static NSArray *bad = nil;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        bad = @[@"Bill", @"RedPacket", @"Lqt", @"Detail", @"Record", @"History", @"Confirm"];
+    });
+    for (NSString *b in bad) {
+        if ([n rangeOfString:b options:NSCaseInsensitiveSearch].location != NSNotFound) return NO;
+    }
+    return YES;
 }
 
 void DTModuleBalanceInstall(void) {
-    if (!DTBool(kEn, YES)) { DTLog(@"balance: disabled"); return; }
+    if (!DTBool(kEn, NO)) { DTLog(@"balance: disabled"); return; }
 
     __block int n = 0;
     for (NSString *cn in DTWeChatClassNames()) {
         Class c = objc_getClass(cn.UTF8String);
         if (!c) continue;
         if (![c isSubclassOfClass:[UIViewController class]]) continue;
-        if (!DTIsWalletVC(c)) continue;
+        if (!DTIsBalanceVC(c)) continue;
 
         SEL app = sel_registerName("viewDidAppear:");
         __block Class wc = c;

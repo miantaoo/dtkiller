@@ -110,13 +110,11 @@ static NSData *DTVoiceDataOfWrap(id wrap) {
 }
 
 static NSUInteger DTVoiceSeconds(id wrap) {
-    id t = DTCallGetter(wrap, @[@"m_uiVoiceTime", @"voiceTime", @"getVoiceTime"]);
-    if ([t respondsToSelector:@selector(unsignedIntegerValue)]) {
-        NSUInteger v = [t unsignedIntegerValue];
-        if (v > 0) {
-            // 微信的 m_uiVoiceTime 是毫秒；大于 600 的一律按毫秒处理
-            return v > 600 ? (v / 1000) : v;
-        }
+    NSInteger raw = 0;
+    if (DTIntValue(wrap, @[@"m_uiVoiceTime", @"voiceTime", @"getVoiceTime"], &raw) && raw > 0) {
+        NSUInteger v = (NSUInteger)raw;
+        // 微信的 m_uiVoiceTime 是毫秒；大于 600 的一律按毫秒处理
+        return v > 600 ? (v / 1000) : v;
     }
     // 退路：按 SILK 帧数算（每帧 480 样本 @24kHz = 20ms）
     NSData *d = DTVoiceDataOfWrap(wrap);
@@ -141,16 +139,24 @@ static BOOL DTSendVoiceToContact(NSData *silk, NSUInteger sec, NSString *userNam
         ((void (*)(id, SEL, id, unsigned int))imp)(mgr, enter, userName, 0);
     }
 
+    // 单位是**毫秒**（微信内部 m_uiVoiceTime 就是毫秒，直接透传）。
+    // 传秒会让对方看到 0 秒的语音；传超过 60 秒会被微信自己拒掉，所以两头都夹一下。
+    unsigned int ms = (unsigned int)(sec * 1000.0);
+    if (ms < 1000)  ms = 1000;
+    if (ms > 60000) ms = 60000;
+
     SEL s1 = NSSelectorFromString(@"PutsendVoice:tovoicedata:");
     if ([mgr respondsToSelector:s1]) {
         IMP imp = [mgr methodForSelector:s1];
-        ((void (*)(id, SEL, unsigned int, id))imp)(mgr, s1, (unsigned int)sec, silk);
+        ((void (*)(id, SEL, unsigned int, id))imp)(mgr, s1, ms, silk);
+        DTLog(@"voicefwd: PutsendVoice ms=%u", ms);
         return YES;
     }
     SEL s2 = NSSelectorFromString(@"SendVoice:VoiceData:");
     if ([mgr respondsToSelector:s2]) {
         IMP imp = [mgr methodForSelector:s2];
-        ((void (*)(id, SEL, unsigned int, id))imp)(mgr, s2, (unsigned int)sec, silk);
+        ((void (*)(id, SEL, unsigned int, id))imp)(mgr, s2, ms, silk);
+        DTLog(@"voicefwd: SendVoice ms=%u", ms);
         return YES;
     }
     return NO;
@@ -306,7 +312,7 @@ static NSArray *DTAppendForwardItem(NSArray *items, id wrap, UIViewController *h
 }
 
 void DTModuleVoiceFwdInstall(void) {
-    if (!DTBool(kEn, YES)) { DTLog(@"voicefwd: disabled"); return; }
+    if (!DTBool(kEn, NO)) { DTLog(@"voicefwd: disabled"); return; }
 
     __block int n = 0;
     for (NSString *cn in DTWeChatClassNames()) {
@@ -320,12 +326,13 @@ void DTModuleVoiceFwdInstall(void) {
             DTHookMsg(c, sel, imp_implementationWithBlock(^id(id self) {
                 IMP o = DTOrigFor(wc, sel);
                 id items = o ? ((id (*)(id, SEL))o)(self, sel) : nil;
-                if (!DTBool(kEn, YES)) return items;
+                if (!DTBool(kEn, NO)) return items;
                 id wrap = DTCallGetter(self, @[@"m_msgWrap", @"msgWrap"]) ?: DTGetIvar(self, "m_msgWrap");
                 if (!wrap) return items;
-                // 只处理语音（type 34）
-                id t = DTCallGetter(wrap, @[@"m_uiMessageType", @"messageType"]);
-                if ([t respondsToSelector:@selector(integerValue)] && [t integerValue] != 34) return items;
+                // 只处理语音（type 34）。取不到类型就当作「不是语音」，
+                // 否则会给文本/图片消息也挂上「转发语音」，点下去必然报读不到数据。
+                NSInteger mt = -1;
+                if (!DTIntValue(wrap, @[@"m_uiMessageType", @"messageType"], &mt) || mt != 34) return items;
                 UIViewController *host = DTViewControllerOf((UIView *)self);
                 return DTAppendForwardItem(items, wrap, host);
             }));

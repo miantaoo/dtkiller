@@ -19,6 +19,8 @@
 static NSString *const kEn     = @"DTMomentsTailEnable";
 static NSString *const kPhone  = @"DTMomentsTailPhone";
 static NSString *const kPrefix = @"DTMomentsTailPrefix";
+/// 给「已经替换过来源的那一个 label」打的标记，避免每次 layout 重新遍历整棵树
+static const NSInteger kDTTailTag = 0x7A11;
 
 static NSString *DTTailText(void) {
     NSString *dev = DTStr(kPhone, @"iPhone 15 Pro Max");
@@ -37,20 +39,29 @@ static BOOL DTIsTimelineClass(NSString *cn) {
     return NO;
 }
 
-/// 把 text 里「来自 XXX」这一段换掉，保留前面的相对时间
-static NSString *DTReplaceTail(NSString *text, NSString *want) {
-    NSRange r = [text rangeOfString:@"来自"];
+/// 把 text 里「<prefix> XXX」这段换掉，保留前面的相对时间。
+/// 三个约束都是为了不误伤正文：来源行一定很短、prefix 一定落在后半段、
+/// 且匹配用的是配置里的 prefix（不再硬编码「来自」，否则改了前缀就永远匹配不上）。
+static NSString *DTReplaceTailWithPrefix(NSString *text, NSString *prefix, NSString *want) {
+    if (text.length == 0 || text.length > 32) return nil;
+    if (prefix.length == 0) prefix = @"来自";
+    NSRange r = [text rangeOfString:prefix];
+    if (r.location == NSNotFound && ![prefix isEqualToString:@"来自"]) {
+        r = [text rangeOfString:@"来自"];          // 旧文案兜底
+    }
     if (r.location == NSNotFound) return nil;
+    if (r.location * 2 < text.length) return nil;   // prefix 必须落在后半段
     NSString *tail = [text substringFromIndex:r.location];
-    if ([tail isEqualToString:want]) return nil;      // 已经是目标文案
+    if ([tail isEqualToString:want]) return nil;    // 已经是目标文案
     return [[text substringToIndex:r.location] stringByAppendingString:want];
 }
 
 void DTModuleMomentsTailInstall(void) {
-    if (!DTBool(kEn, YES)) { DTLog(@"momentstail: disabled"); return; }
+    if (!DTBool(kEn, NO)) { DTLog(@"momentstail: disabled"); return; }
 
     __block int nData = 0, nView = 0;
     NSString *want = DTTailText();
+    NSString *pre  = DTStr(kPrefix, @"来自");
 
     // ---- 1) 数据层 ----
     NSArray *sels = @[@"source", @"m_source", @"getSource", @"sourceName", @"m_nsSource"];
@@ -75,7 +86,7 @@ void DTModuleMomentsTailInstall(void) {
                 IMP o = DTOrigFor(wc, sel);
                 id orig = o ? ((id (*)(id, SEL))o)(self, sel) : nil;
                 if (![orig isKindOfClass:[NSString class]]) return orig;
-                NSString *rep = DTReplaceTail(orig, want);
+                NSString *rep = DTReplaceTailWithPrefix(orig, pre, want);
                 return rep ?: orig;
             }));
             nData++;
@@ -101,14 +112,31 @@ void DTModuleMomentsTailInstall(void) {
             IMP o = DTOrigFor(wc, ls);
             if (o) ((void (*)(id, SEL))o)(self, ls);
 
+            // 先处理已标记的来源 label（通常 0 或 1 个），没有再全树找一次并打 tag，
+            // 之后每次 layout 只碰带 tag 的那个，避免滚动时整棵树 DFS。
+            DTEnumerateViews((UIView *)self, ^BOOL(UIView *v) {
+                if (v.tag != kDTTailTag) return NO;
+                UILabel *l = (UILabel *)v;
+                NSString *rep = DTReplaceTailWithPrefix(l.text, pre, want);
+                if (rep && ![rep isEqualToString:l.text]) l.text = rep;
+                return NO;
+            });
+            __block BOOL hasMarked = NO;
+            DTEnumerateViews((UIView *)self, ^BOOL(UIView *v) {
+                if (v.tag == kDTTailTag) { hasMarked = YES; return YES; }
+                return NO;
+            });
+            if (hasMarked) return;
+
             DTEnumerateViews((UIView *)self, ^BOOL(UIView *v) {
                 if (![v isKindOfClass:[UILabel class]]) return NO;
                 UILabel *l = (UILabel *)v;
                 if (l.text.length == 0) return NO;
-                NSString *rep = DTReplaceTail(l.text, want);
-                // 文本没变就别赋值，否则每次 layout 都触发重绘，朋友圈滚起来会掉帧
-                if (rep && ![rep isEqualToString:l.text]) l.text = rep;
-                return NO;
+                NSString *rep = DTReplaceTailWithPrefix(l.text, pre, want);
+                if (!rep) return NO;
+                if (![rep isEqualToString:l.text]) l.text = rep;
+                l.tag = kDTTailTag;          // 只认第一个命中，后续 layout 直接走上面的快路径
+                return YES;
             });
         }));
         nView++;

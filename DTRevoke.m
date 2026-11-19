@@ -108,6 +108,14 @@ void DTModuleRevokeInstall(void) {
     gDidInstall = YES;
     if (!DTBool(kEn, YES)) { DTLog(@"revoke: disabled"); return; }
 
+    // 本机发起撤回的入口（名字各版本不统一，逐个试，只认 void(id) 签名）。
+    // 提到函数顶部是为了让下面的兜底扫描也能跳过它们。
+    static const char *selfSels[] = {
+        "RevokeMsg:", "revokeMsg:", "RevokeMessage:", "revokeMessage:",
+        "onRevoke:", "RevokeMsgWithWrap:"
+    };
+    const size_t selfSelCount = sizeof(selfSels) / sizeof(selfSels[0]);
+
     int n = 0;
     n += DTHookSelectorInImage("WeChat", "onRevokeMsg:", (IMP)n_onRevokeMsg);
     n += DTHookSelectorInImage("WeChat", "OnRevokeMsg:", (IMP)n_onRevokeMsg);
@@ -115,11 +123,7 @@ void DTModuleRevokeInstall(void) {
     // 本机发起撤回的入口。名字在各版本不统一，逐个试，只认 void(id) 签名。
     int selfn = 0;
     if (DTBool(kAllowSelf, YES)) {
-        static const char *selfSels[] = {
-            "RevokeMsg:", "revokeMsg:", "RevokeMessage:", "revokeMessage:",
-            "onRevoke:", "RevokeMsgWithWrap:"
-        };
-        for (size_t i = 0; i < sizeof(selfSels) / sizeof(selfSels[0]); i++) {
+        for (size_t i = 0; i < selfSelCount; i++) {
             if (!strcmp(selfSels[i], "onRevokeMsg:") ||
                 !strcmp(selfSels[i], "OnRevokeMsg:")) continue;
             selfn += dtHookVoidID(selfSels[i], (IMP)n_selfRevoke);
@@ -145,6 +149,13 @@ void DTModuleRevokeInstall(void) {
                 NSString *sn = NSStringFromSelector(s);
                 if ([sn rangeOfString:@"Revoke" options:NSCaseInsensitiveSearch].location == NSNotFound) continue;
                 if ([sn isEqualToString:@"onRevokeMsg:"] || [sn isEqualToString:@"OnRevokeMsg:"]) continue;
+                // 已装过处理体的入口必须跳过：否则兜底会把它们重挂成 noop，
+                // 用户点「撤回」毫无反应，gSelfRevokeAt 也永远不置位。
+                BOOL handled = NO;
+                for (size_t q = 0; q < selfSelCount; q++) {
+                    if ([sn isEqualToString:@(selfSels[q])]) { handled = YES; break; }
+                }
+                if (handled) continue;
                 if (method_getNumberOfArguments(ml[k]) != 3) continue;
                 char *rt = method_copyReturnType(ml[k]);
                 char r = rt ? rt[0] : 'v';

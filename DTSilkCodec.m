@@ -68,9 +68,9 @@ BOOL DTSilkInspect(NSData *silk, NSUInteger *outFrames, NSUInteger *outBytes) {
     while (off + 2 <= raw.length) {
         uint16_t len = (uint16_t)(b[off] | (b[off + 1] << 8));   // 小端
         if (len == 0 || len > 250) break;                        // MAX_BYTES_PER_FRAME
+        if (off + 2 + len > raw.length) break;                   // 半帧：保留已解析的前缀，不整段丢弃
         off += 2 + len;
         frames++;
-        if (off > raw.length) return NO;
     }
     if (outFrames) *outFrames = frames;
     if (outBytes)  *outBytes  = raw.length;

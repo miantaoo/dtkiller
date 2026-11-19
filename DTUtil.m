@@ -33,18 +33,26 @@
 
 @end
 
+// block 返回 YES = 整棵树停止（原来只是跳过当前子树，外层 for 还会继续，
+// 于是 DTFindView 实际返回的是 DFS 里最后一个匹配 —— 净化项拿到副标题就匹配不上了）。
+static BOOL DTWalkViews(UIView *v, BOOL (^block)(UIView *v)) {
+    if (!v) return NO;
+    if (block(v)) return YES;
+    for (UIView *sub in v.subviews) {
+        if (DTWalkViews(sub, block)) return YES;
+    }
+    return NO;
+}
+
 void DTEnumerateViews(UIView *root, BOOL (^block)(UIView *v)) {
     if (!root || !block) return;
-    if (block(root)) return;
-    for (UIView *sub in root.subviews) {
-        DTEnumerateViews(sub, block);
-    }
+    DTWalkViews(root, block);
 }
 
 UIView *DTFindView(UIView *root, BOOL (^pred)(UIView *v)) {
     if (!root || !pred) return nil;
     __block UIView *found = nil;
-    DTEnumerateViews(root, ^BOOL(UIView *v) {
+    DTWalkViews(root, ^BOOL(UIView *v) {
         if (pred(v)) { found = v; return YES; }
         return NO;
     });
@@ -133,14 +141,52 @@ id DTCallGetter(id obj, NSArray<NSString *> *names) {
     if (!obj) return nil;
     for (NSString *n in names) {
         SEL s = NSSelectorFromString(n);
-        if (![obj respondsToSelector:s]) continue;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-        id v = [obj performSelector:s];
-#pragma clang diagnostic pop
+        Method m = class_getInstanceMethod(object_getClass(obj), s);
+        if (!m) continue;
+        // 只接受「返回对象」的方法。以前这里用 performSelector:，而 CMessageWrap 的
+        // m_uiMessageType / m_uiVoiceTime 是 unsigned int —— ARC 会把 34 这个整数当对象
+        // retain 一次，第一次长按消息就 EXC_BAD_ACCESS。
+        char *rt = method_copyReturnType(m);
+        BOOL isObj = (rt && rt[0] == '@');
+        free(rt);
+        if (!isObj) continue;
+        IMP imp = method_getImplementation(m);
+        if (!imp) continue;
+        id v = ((id (*)(id, SEL))imp)(obj, s);
         if (v) return v;
     }
     return nil;
+}
+
+BOOL DTIntValue(id obj, NSArray<NSString *> *names, NSInteger *out) {
+    if (!obj || !out) return NO;
+    for (NSString *n in names) {
+        SEL s = NSSelectorFromString(n);
+        Method m = class_getInstanceMethod(object_getClass(obj), s);
+        if (!m) continue;
+        char *rt = method_copyReturnType(m);
+        char r = rt ? rt[0] : 0;
+        free(rt);
+        IMP imp = method_getImplementation(m);
+        if (!imp || !r) continue;
+        switch (r) {
+            case 'c': *out = ((char (*)(id, SEL))imp)(obj, s);            return YES;
+            case 'C': case 'B': *out = ((unsigned char (*)(id, SEL))imp)(obj, s); return YES;
+            case 's': *out = ((short (*)(id, SEL))imp)(obj, s);           return YES;
+            case 'S': *out = ((unsigned short (*)(id, SEL))imp)(obj, s);  return YES;
+            case 'i': *out = ((int (*)(id, SEL))imp)(obj, s);             return YES;
+            case 'I': *out = (NSInteger)((unsigned int (*)(id, SEL))imp)(obj, s); return YES;
+            case 'q': *out = (NSInteger)((long long (*)(id, SEL))imp)(obj, s);    return YES;
+            case 'Q': *out = (NSInteger)((unsigned long long (*)(id, SEL))imp)(obj, s); return YES;
+            case '@': {
+                id v = ((id (*)(id, SEL))imp)(obj, s);
+                if ([v respondsToSelector:@selector(integerValue)]) { *out = [v integerValue]; return YES; }
+                break;
+            }
+            default: break;
+        }
+    }
+    return NO;
 }
 
 BOOL DTCallSetter(id obj, NSArray<NSString *> *names, id arg) {

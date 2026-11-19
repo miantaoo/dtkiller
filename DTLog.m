@@ -55,12 +55,18 @@ void DTLogWrite(const char *file, int line, NSString *fmt, ...) {
     NSString *path = DTLogCurrentPath();
     NSFileManager *fm = [NSFileManager defaultManager];
 
-    // 滚动
+    // 滚动：保留三代（app.log / app.1.log / app.2.log / app.3.log）。
+    // 原来只留一代，崩溃前那段日志正好在被删掉的 app.1.log 里，导出永远看不到现场。
     NSDictionary *attrs = [fm attributesOfItemAtPath:path error:NULL];
     if (attrs && [attrs fileSize] > kMaxSize) {
-        NSString *bak = [DTLogDirectory() stringByAppendingPathComponent:@"app.1.log"];
-        [fm removeItemAtPath:bak error:NULL];
-        [fm moveItemAtPath:path toPath:bak error:NULL];
+        NSString *dir = DTLogDirectory();
+        NSString *l1 = [dir stringByAppendingPathComponent:@"app.1.log"];
+        NSString *l2 = [dir stringByAppendingPathComponent:@"app.2.log"];
+        NSString *l3 = [dir stringByAppendingPathComponent:@"app.3.log"];
+        [fm removeItemAtPath:l3 error:NULL];
+        [fm moveItemAtPath:l2 toPath:l3 error:NULL];
+        [fm moveItemAtPath:l1 toPath:l2 error:NULL];
+        [fm moveItemAtPath:path toPath:l1 error:NULL];
     }
 
     if (![fm fileExistsAtPath:path]) {
@@ -85,11 +91,20 @@ void DTLogWrite(const char *file, int line, NSString *fmt, ...) {
 }
 
 NSString *DTLogTail(NSUInteger lines) {
-    NSString *path = DTLogCurrentPath();
-    NSString *all = [NSString stringWithContentsOfFile:path
-                                              encoding:NSUTF8StringEncoding
-                                                 error:NULL];
-    if (!all) return @"(暂无日志)";
+    // 3 → 0 拼接：老的在前，新的在后。只看 app.log 会漏掉崩溃前那一代。
+    NSMutableString *all = [NSMutableString string];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    for (int i = 3; i >= 0; i--) {
+        NSString *p = i == 0 ? DTLogCurrentPath()
+                             : [DTLogDirectory() stringByAppendingPathComponent:
+                                [NSString stringWithFormat:@"app.%d.log", i]];
+        if (![fm fileExistsAtPath:p]) continue;
+        NSString *s0 = [NSString stringWithContentsOfFile:p
+                                                 encoding:NSUTF8StringEncoding
+                                                    error:NULL];
+        if (s0.length) [all appendString:s0];
+    }
+    if (all.length == 0) return @"(暂无日志)";
     NSArray *arr = [all componentsSeparatedByString:@"\n"];
     if (arr.count <= lines) return all;
     NSArray *tail = [arr subarrayWithRange:NSMakeRange(arr.count - lines, lines)];
@@ -98,6 +113,12 @@ NSString *DTLogTail(NSUInteger lines) {
 
 void DTLogClear(void) {
     pthread_mutex_lock(&gLogLock);
-    [[NSFileManager defaultManager] removeItemAtPath:DTLogCurrentPath() error:NULL];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    [fm removeItemAtPath:DTLogCurrentPath() error:NULL];
+    for (int i = 1; i <= 3; i++) {
+        NSString *p = [DTLogDirectory() stringByAppendingPathComponent:
+                       [NSString stringWithFormat:@"app.%d.log", i]];
+        [fm removeItemAtPath:p error:NULL];
+    }
     pthread_mutex_unlock(&gLogLock);
 }

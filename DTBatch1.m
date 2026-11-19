@@ -74,18 +74,44 @@ static BOOL DTItemIsAd(id item)
     return NO;
 }
 
-/// 朋友圈数据项进列表前的最后一道闸：广告项直接返回 nil，让列表跳过它。
-/// 这个 selector 是 WCPureExtension 用过的（hookscan 里有 LL_onBeforeReturnDataItem:），
-/// 8.0.56 上先探测存在性。
-static id DTAdBeforeReturnDataItem(id self, SEL _cmd, id item)
+static BOOL DTFinderIsCard(id item);          // 定义在后面，先声明
+
+/// 朋友圈数据项进列表前的唯一闸门：广告 + 视频号卡片都从这里过。
+/// 以前「广告净化」和「视频号净化」各 hook 了一次 LL_onBeforeReturnDataItem:，
+/// 第二个 wrapper 会把第一个当成自己的 orig → 遇到普通动态就自递归，滑一次闪退。
+static NSMutableSet<NSString *> *gBeforeReturnDone;
+
+static id DTBeforeReturnDataItem(id self, SEL _cmd, id item)
 {
     IMP o = DTOrigFor(object_getClass(self), _cmd);
+
     if (gAdMoments && DTItemIsAd(item)) {
         DTLog(@"ad: 丢掉一条朋友圈广告 %@", NSStringFromClass([item class]));
         return nil;
     }
+    if (gFinderMoments && DTFinderIsCard(item)) {
+        return nil;
+    }
     if (!o) return item;
     return ((id (*)(id, SEL, id))o)(self, _cmd, item);
+}
+
+/// 幂等安装：两个模块都调它，只有第一次真的挂 hook。
+static int DTHookBeforeReturnOnce(void)
+{
+    if (!gBeforeReturnDone) gBeforeReturnDone = [NSMutableSet set];
+    int n = 0;
+    for (NSString *cn in DTOwnerClassesForSelector("LL_onBeforeReturnDataItem:")) {
+        if ([gBeforeReturnDone containsObject:cn]) continue;
+        Class c = NSClassFromString(cn);
+        if (!c) continue;
+        if (DTHookMsg(c, sel_registerName("LL_onBeforeReturnDataItem:"),
+                      (IMP)DTBeforeReturnDataItem)) {
+            [gBeforeReturnDone addObject:cn];
+            n++;
+        }
+    }
+    return n;
 }
 
 /// 兜底：isAd 一律报 NO。移除失败时至少让广告按普通样式渲染，不至于整块白。
@@ -97,12 +123,8 @@ static BOOL DTAdIsAdNo(id self, SEL _cmd)
 static void DTAdInstallMoments(void)
 {
     int n = 0;
-    // 主闸：列表构建
-    for (NSString *cn in DTOwnerClassesForSelector("LL_onBeforeReturnDataItem:")) {
-        Class c = NSClassFromString(cn);
-        if (c && DTHookMsg(c, sel_registerName("LL_onBeforeReturnDataItem:"),
-                           (IMP)DTAdBeforeReturnDataItem)) n++;
-    }
+    // 主闸：列表构建（与视频号净化共用一个 hook）
+    n += DTHookBeforeReturnOnce();
     // 次闸：标记位
     for (NSString *cn in DTClassesMatching("TimeLine")) {
         Class c = NSClassFromString(cn);
@@ -226,11 +248,7 @@ static void DTFinderInstall(void)
     }
 
     if (gFinderMoments) {
-        for (NSString *cn in DTOwnerClassesForSelector("LL_onBeforeReturnDataItem:")) {
-            Class c = NSClassFromString(cn);
-            if (c && DTHookMsg(c, sel_registerName("LL_onBeforeReturnDataItem:"),
-                               (IMP)DTFinderBeforeReturn)) n++;
-        }
+        n += DTHookBeforeReturnOnce();      // 幂等，广告那边装过就复用
     }
     DTLog(@"finder: 装了 %d 个点", n);
 }
@@ -277,6 +295,18 @@ static void DTSafariOpen(NSString *url)
 }
 
 /// 聊天里点链接的总入口。不同版本参数个数不同，probe 后按 4 参处理（self + _cmd + url + rect）。
+/// 从点击发生的对象身上找那条消息，用来排除 type 49（公众号文章/卡片）。
+/// 不找的话「公众号文章不转 Safari」这条需求就是空的。
+static id DTSafariMsgWrapOf(id self)
+{
+    static NSString *names[] = { "m_msgWrap", "m_msg", "m_oMsgWrap", "msgWrap" };
+    for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
+        id v = DTGetIvar(self, names[i]);
+        if (v) return v;
+    }
+    return nil;
+}
+
 static id DTSafariOnLinkClicked(id self, SEL _cmd, id url, CGRect rect)
 {
     IMP o = DTOrigFor(object_getClass(self), _cmd);
@@ -284,7 +314,7 @@ static id DTSafariOnLinkClicked(id self, SEL _cmd, id url, CGRect rect)
     if ([url isKindOfClass:[NSString class]]) s = url;
     else if ([url isKindOfClass:[NSURL class]]) s = [(NSURL *)url absoluteString];
 
-    if (gSafariOn && DTSafariShouldOpen(s, nil)) {
+    if (gSafariOn && DTSafariShouldOpen(s, DTSafariMsgWrapOf(self))) {
         DTSafariOpen(s);
         return nil;
     }
@@ -364,10 +394,22 @@ static BOOL DTDlWanted(id msgWrap)
 }
 
 /// 「现在能不能下载这个媒体」—— 微信自己就在这里判网络和限额，把它改成 YES 最省事。
+/// 但子开关必须真的生效：参数确实是消息对象时按 DTDlWanted 过滤。
 static BOOL DTDlCanDownload(id self, SEL _cmd, id arg)
 {
     IMP o = DTOrigFor(object_getClass(self), _cmd);
     if (!DTNetAllows()) return o ? ((BOOL (*)(id, SEL, id))o)(self, _cmd, arg) : NO;
+    if (arg && DTGetIvar(arg, "m_uiMessageType")) {
+        return DTDlWanted(arg);
+    }
+    return YES;
+}
+
+/// 两参版本（-allowSilentDownload 之类）：不能当成有第三参调用，否则读寄存器垃圾。
+static BOOL DTDlSilent(id self, SEL _cmd)
+{
+    IMP o = DTOrigFor(object_getClass(self), _cmd);
+    if (!DTNetAllows()) return o ? ((BOOL (*)(id, SEL))o)(self, _cmd) : NO;
     return YES;
 }
 
@@ -397,13 +439,12 @@ static void DTDlInstall(void)
             if (!m) continue;
             char rtb[16] = {0}; method_getReturnType(m, rtb, sizeof(rtb)); const char *rt = rtb;
             if (!rt || rt[0] != 'B') continue;     // 只碰返回 BOOL 的
-            if (method_getNumberOfArguments(m) != 3) {
-                if (method_getNumberOfArguments(m) == 2) {
-                    if (DTHookMsg(c, s, (IMP)DTDlCanDownload)) n++;
-                }
-                continue;
+            NSUInteger ac = method_getNumberOfArguments(m);
+            if (ac == 3) {
+                if (DTHookMsg(c, s, (IMP)DTDlCanDownload)) n++;
+            } else if (ac == 2) {
+                if (DTHookMsg(c, s, (IMP)DTDlSilent)) n++;
             }
-            if (DTHookMsg(c, s, (IMP)DTDlCanDownload)) n++;
         }
     }
     DTLog(@"dl: 装了 %d 个点，网络模式 %ld，上限 %ldMB", n, (long)gDlNet, (long)gDlMaxMB);

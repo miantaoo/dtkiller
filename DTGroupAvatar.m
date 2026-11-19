@@ -19,25 +19,40 @@
 static NSString *const kEn = @"DTGroupAvatarEnable";
 
 static NSString *DTAvatarDir(void) {
-    NSString *d = [DTLogDirectory() stringByAppendingPathComponent:@"avatars"];
-    [[NSFileManager defaultManager] createDirectoryAtPath:d
-                              withIntermediateDirectories:YES
-                                               attributes:nil
-                                                    error:NULL];
-    return d;
+    // 原来每次调用都 createDirectory，setter 在列表滚动时每帧都会走到 → 主线程同步 IO。
+    static NSString *dir = nil;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        NSString *d = [DTLogDirectory() stringByAppendingPathComponent:@"avatars"];
+        [[NSFileManager defaultManager] createDirectoryAtPath:d
+                                  withIntermediateDirectories:YES
+                                                   attributes:nil
+                                                        error:NULL];
+        dir = d;
+    });
+    return dir;
 }
 
 /// 群 id → 图片。支持 <群id>.png/.jpg/.jpeg/.webp
 static UIImage *DTImageForGroup(NSString *gid) {
     if (![gid isKindOfClass:[NSString class]] || gid.length == 0) return nil;
-    NSArray *exts = @[@"png", @"jpg", @"jpeg", @"webp", @"PNG", @"JPG"];
-    for (NSString *e in exts) {
+
+    static NSCache<NSString *, UIImage *> *cache = nil;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ cache = [NSCache new]; cache.countLimit = 200; });
+
+    NSFileManager *fm = [NSFileManager defaultManager];
+    for (NSString *e in @[@"png", @"jpg", @"jpeg", @"webp", @"PNG", @"JPG"]) {
         NSString *p = [DTAvatarDir() stringByAppendingPathComponent:
                        [NSString stringWithFormat:@"%@.%@", gid, e]];
-        if ([[NSFileManager defaultManager] fileExistsAtPath:p]) {
-            UIImage *img = [UIImage imageWithContentsOfFile:p];
-            if (img) return img;
-        }
+        if (![fm fileExistsAtPath:p]) continue;
+        // 键带 mtime：换了图立刻生效，同时避免每帧重新解码原图（列表滚动掉帧的主因）
+        NSDate *mt = [[fm attributesOfItemAtPath:p error:NULL] fileModificationDate];
+        NSString *key = [NSString stringWithFormat:@"%@|%.0f", p, mt.timeIntervalSince1970];
+        UIImage *hit = [cache objectForKey:key];
+        if (hit) return hit;
+        UIImage *img = [UIImage imageWithContentsOfFile:p];
+        if (img) { [cache setObject:img forKey:key]; return img; }
     }
     return nil;
 }
@@ -66,7 +81,7 @@ static NSString *DTUsrNameOf(id obj) {
 }
 
 void DTModuleGroupAvatarInstall(void) {
-    if (!DTBool(kEn, YES)) { DTLog(@"groupavatar: disabled"); return; }
+    if (!DTBool(kEn, NO)) { DTLog(@"groupavatar: disabled"); return; }
 
     int n = 0;
     NSArray *sels = @[@"setUsrName:", @"setContact:", @"setUserName:", @"setHeadImageViewUsrName:"];
@@ -118,8 +133,8 @@ static NSString *DTMD5(NSString *s) {
 }
 
 /// 把自定义图铺进微信的品牌头像缓存目录（尽力而为，找不到目录就跳过）
-void DTGroupAvatarFlushToCache(void) {
-    if (!DTBool(kEn, YES)) return;
+int DTGroupAvatarFlushToCache(void) {
+    if (!DTBool(kEn, NO)) return -1;     // -1 = 功能没开
     NSString *docs = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
     NSArray *cands = @[
         [docs stringByAppendingPathComponent:@"mmsf"],
@@ -129,7 +144,7 @@ void DTGroupAvatarFlushToCache(void) {
     for (NSString *c in cands) {
         if ([[NSFileManager defaultManager] fileExistsAtPath:c]) { dir = c; break; }
     }
-    if (!dir) { DTLog(@"groupavatar: cache dir not found, runtime-only"); return; }
+    if (!dir) { DTLog(@"groupavatar: cache dir not found, runtime-only"); return -2; }   // -2 = 没有缓存目录
 
     NSArray *files = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:DTAvatarDir() error:NULL];
     int copied = 0;
@@ -150,4 +165,5 @@ void DTGroupAvatarFlushToCache(void) {
         }
     }
     DTLog(@"groupavatar: flushed %d avatars into %@", copied, dir);
+    return copied;                        // 0 = 群里还没有头像缓存，>0 = 已写入张数
 }

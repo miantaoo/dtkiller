@@ -72,9 +72,11 @@ static UIImage *DTRadiusMakeImage(UIImage *src, CGFloat radius, CGFloat scale)
 
 static NSString *DTRadiusCacheKey(UIImage *img, CGFloat radius, CGFloat scale)
 {
-    // 只按「图片对象 + 半径 + scale」缓存。同一张图在不同尺寸控件里
-    // 半径已经不同，所以三者一起构成键，够用了。
-    return [NSString stringWithFormat:@"%p|%.1f|%.2f", img, radius, scale];
+    // 键里必须带像素尺寸：只靠 UIImage 指针的话，前一张图释放后新图可能落在
+    // 同一个地址，缓存就会把别人的头像圆角贴到你脸上。
+    CGSize sz = img.size;
+    return [NSString stringWithFormat:@"%p|%.0fx%.0f|%.1f|%.2f",
+            (void *)img.CGImage, sz.width, sz.height, radius, scale];
 }
 
 static void DTRadiusSetImage(id self, SEL _cmd, UIImage *img)
@@ -85,7 +87,11 @@ static void DTRadiusSetImage(id self, SEL _cmd, UIImage *img)
     UIView *v = (UIView *)self;
     CGSize bounds = v.bounds.size;
     if (bounds.width < 24.0 || bounds.height < 24.0) {
-        // 太小（图标、表情）就不动，避免糊成一团
+        // setImage: 常常发生在布局之前，这时候 bounds 还是 0，退回图片自身尺寸来算
+        bounds = img.size;
+    }
+    if (bounds.width < 24.0 || bounds.height < 24.0) {
+        // 还是太小（图标、表情）就不动，避免糊成一团
         gOrigSetImage(self, _cmd, img);
         return;
     }

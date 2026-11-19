@@ -30,11 +30,10 @@ IMP DTHookMsg(Class cls, SEL sel, IMP newImp) {
     if (!cls || !sel || !newImp) return NULL;
 
     Method m = class_getInstanceMethod(cls, sel);
-    if (!m) {
-        // 类上完全没有这个方法：硬加一个，方便调用方完整接管
-        class_addMethod(cls, sel, newImp, "@@:");
-        return NULL;
-    }
+    // 没有这个方法就退出。以前这里硬加一个 "@@:"（返回 id）进去，
+    // 结果给几千个类种上了类型错位的 isAd —— respondsToSelector 从 false 变 true，
+    // 谁用 KVC / NSInvocation 读一下就拿到野指针。宁可不 hook。
+    if (!m) return NULL;
 
     IMP old = method_getImplementation(m);
     if (old == newImp) return old;
@@ -48,7 +47,11 @@ IMP DTHookMsg(Class cls, SEL sel, IMP newImp) {
 
     pthread_mutex_lock(&gLock);
     DTEnsureTables();
-    gOrig[DTKey(cls, sel)] = DTBox(old);
+    // 只记第一份原实现。同一条 selector 被两个模块 hook 时，第二个 wrapper
+    // 会变成第一个 wrapper 的 orig，两边互相调 → 栈溢出。合并 hook 仍是首选，
+    // 这一行只是兜底，保证最坏情况下不炸栈。
+    NSString *k = DTKey(cls, sel);
+    if (!gOrig[k]) gOrig[k] = DTBox(old);
     pthread_mutex_unlock(&gLock);
     return old;
 }
@@ -71,7 +74,8 @@ IMP DTHookClsMsg(Class cls, SEL sel, IMP newImp) {
 
     pthread_mutex_lock(&gLock);
     DTEnsureTables();
-    gOrigClass[DTKey(cls, sel)] = DTBox(old);
+    NSString *k2 = DTKey(cls, sel);
+    if (!gOrigClass[k2]) gOrigClass[k2] = DTBox(old);
     pthread_mutex_unlock(&gLock);
     return old;
 }
@@ -79,9 +83,16 @@ IMP DTHookClsMsg(Class cls, SEL sel, IMP newImp) {
 IMP DTOrigFor(Class cls, SEL sel) {
     if (!cls || !sel) return NULL;
     pthread_mutex_lock(&gLock);
-    id v = gOrig ? gOrig[DTKey(cls, sel)] : nil;
+    IMP r = NULL;
+    // 沿父类链找：微信大量用 KVO / 动态子类，object_getClass(self) 是
+    // NSKVONotifying_XXX，精确查表查不到，wrapper 就会直接 return ——
+    // 表现是设置页白屏、点了没反应、文案空白。
+    for (Class c = cls; c && !r; c = class_getSuperclass(c)) {
+        id v = gOrig ? gOrig[DTKey(c, sel)] : nil;
+        if (v) r = DTUnbox(v);
+    }
     pthread_mutex_unlock(&gLock);
-    return DTUnbox(v);
+    return r;
 }
 
 BOOL DTHookNamed(const char *clsName, const char *selName, IMP newImp, IMP *outOrig) {

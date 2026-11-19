@@ -134,8 +134,16 @@ static void DTReload(UIViewController *host) {
         DTSilkPickFile(host);
     });
     DTItem *groupAvatar = act(@"群头像刷缓存", @"把 avatars 目录里的图刷进缓存", ^(UIViewController *host) {
-        DTGroupAvatarFlushToCache();
-        DTAlert(host, @"已刷新，重启微信生效。\n图片放在 Documents/DTKiller/avatars/<群id>.png");
+        int n = DTGroupAvatarFlushToCache();
+        if (n > 0) {
+            DTAlert(host, [NSString stringWithFormat:@"已写入 %d 张，重启微信生效。", n]);
+        } else if (n == 0) {
+            DTAlert(host, @"没有可写入的缓存：微信还没为这些群生成过头像缓存。\n先打开对应群聊看一次头像，再回来重试。");
+        } else if (n == -1) {
+            DTAlert(host, @"请先打开「群头像」开关。");
+        } else {
+            DTAlert(host, @"没找到微信头像缓存目录，本功能需要微信先正常加载过头像。");
+        }
     });
     DTItem *ledger = act(@"记账本汇总", @"按月统计已记录的交易", ^(UIViewController *host) {
         NSDictionary *m = DTLedgerMonthlySummary();
@@ -195,37 +203,37 @@ static void DTReload(UIViewController *host) {
         // 1. 净化
         @[ cleanAll,
            sw(@"界面净化", @"总开关（关掉不会自动恢复已隐藏的项）", @"DTPureEnable", NO),
-           sw(@"小程序入口", @"发现页", @"DTPureHideMiniProgram", NO),
-           sw(@"视频号入口", @"发现页", @"DTPureHideChannels", NO),
-           sw(@"直播", @"发现页", @"DTPureHideLive", NO),
-           sw(@"购物", @"发现页", @"DTPureHideShopping", NO),
-           sw(@"游戏", @"发现页", @"DTPureHideGames", NO),
-           sw(@"我·朋友圈", @"「我」页入口", @"DTPureHideMeMoments", NO),
-           sw(@"我·表情", @"「我」页入口", @"DTPureHideMeEmoji", NO),
-           sw(@"我·收藏", @"「我」页入口", @"DTPureHideMeFavorites", NO),
-           sw(@"我·卡包", @"「我」页入口", @"DTPureHideMeWallet", NO),
-           sw(@"我·表情商店", @"「我」页入口", @"DTPureHideMeSticker", NO),
-           sw(@"表情面板·拍照", @"聊天表情面板", @"DTPureHideEmojiCamera", NO),
-           sw(@"表情面板·最近", @"聊天表情面板", @"DTPureHideEmojiRecent", NO),
-           sw(@"表情面板·搜索", @"聊天表情面板", @"DTPureHideEmojiSearch", NO),
+           sw(@"小程序入口", @"发现页", @"DTPureHideMiniProgram", YES),
+           sw(@"视频号入口", @"发现页", @"DTPureHideChannels", YES),
+           sw(@"直播", @"发现页", @"DTPureHideLive", YES),
+           sw(@"购物", @"发现页", @"DTPureHideShopping", YES),
+           sw(@"游戏", @"发现页", @"DTPureHideGames", YES),
+           sw(@"我·朋友圈", @"「我」页入口", @"DTPureHideMeMoments", YES),
+           sw(@"我·表情", @"「我」页入口", @"DTPureHideMeEmoji", YES),
+           sw(@"我·收藏", @"「我」页入口", @"DTPureHideMeFavorites", YES),
+           sw(@"我·卡包", @"「我」页入口", @"DTPureHideMeWallet", YES),
+           sw(@"我·表情商店", @"「我」页入口", @"DTPureHideMeSticker", YES),
+           sw(@"表情面板·拍照", @"聊天表情面板", @"DTPureHideEmojiCamera", YES),
+           sw(@"表情面板·最近", @"聊天表情面板", @"DTPureHideEmojiRecent", YES),
+           sw(@"表情面板·搜索", @"聊天表情面板", @"DTPureHideEmojiSearch", YES),
            sw(@"广告净化", @"总开关", @"DTAdBlockEnable", NO),
-           sw(@"朋友圈广告", @"", @"DTAdBlockMoments", NO),
-           sw(@"品牌广告", @"", @"DTAdBlockBrand", NO),
-           sw(@"小程序广告", @"", @"DTAdBlockMiniProgram", NO),
-           sw(@"搜索广告", @"", @"DTAdBlockSearch", NO),
+           sw(@"朋友圈广告", @"", @"DTAdBlockMoments", YES),
+           sw(@"品牌广告", @"", @"DTAdBlockBrand", YES),
+           sw(@"小程序广告", @"", @"DTAdBlockMiniProgram", YES),
+           sw(@"搜索广告", @"", @"DTAdBlockSearch", YES),
            sw(@"发现页净化", @"总开关", @"DTFinderBlockEnable", NO),
-           sw(@"发现页", @"", @"DTFinderBlockDiscover", NO),
-           sw(@"「我」页", @"", @"DTFinderBlockMe", NO),
-           sw(@"朋友圈入口", @"", @"DTFinderBlockMoments", NO),
+           sw(@"发现页", @"", @"DTFinderBlockDiscover", YES),
+           sw(@"「我」页", @"", @"DTFinderBlockMe", YES),
+           sw(@"朋友圈入口", @"", @"DTFinderBlockMoments", YES),
            sw(@"链接用 Safari 打开", @"公众号文章不转", @"DTSafariEnable", NO),
            sw(@"自动下载", @"总开关", @"DTAutoDownloadEnable", NO),
-           sw(@"  图片", @"", @"DTAutoDownloadImage", NO),
-           sw(@"  视频", @"", @"DTAutoDownloadVideo", NO),
-           sw(@"  文件", @"", @"DTAutoDownloadFile", NO),
-           sw(@"  语音", @"", @"DTAutoDownloadVoice", NO),
+           sw(@"  图片", @"", @"DTAutoDownloadImage", YES),
+           sw(@"  视频", @"", @"DTAutoDownloadVideo", YES),
+           sw(@"  文件", @"", @"DTAutoDownloadFile", YES),
+           sw(@"  语音", @"", @"DTAutoDownloadVoice", YES),
            pick(@"  网络", @"选「关闭」等于不自动下载", @"DTAutoDownloadNet", @[@"仅 WiFi", @"含蜂窝", @"关闭"]),
            num(@"  单文件上限 MB", @"超过就不下", @"DTAutoDownloadMaxMB"),
-           sw(@"  群聊也下载", @"", @"DTAutoDownloadGroup", NO),
+           sw(@"  群聊也下载", @"", @"DTAutoDownloadGroup", YES),
            sw(@"  单聊也下载", @"", @"DTAutoDownloadPrivate", NO) ],
 
         // 2. 语音
@@ -341,7 +349,13 @@ static void DTReload(UIViewController *host) {
         c.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         c.selectionStyle = UITableViewCellSelectionStyleDefault;
         if (it.kind == DTItemKindNumber) {
-            c.detailTextLabel.text = [NSString stringWithFormat:@"%@  (当前 %g)", it.subtitle ?: @"", DTDouble(it.key, 0)];
+            // 未设置就不要显示成「当前 0」：用户点进去看到 0 再保存，就把 0 真写进配置了
+            // （比如 DTKillerBitrate 变 0 会让 SILK 编码直接失败）。
+            if (DTObj(it.key)) {
+                c.detailTextLabel.text = [NSString stringWithFormat:@"%@  (当前 %g)", it.subtitle ?: @"", DTDouble(it.key, 0)];
+            } else {
+                c.detailTextLabel.text = [NSString stringWithFormat:@"%@  (未设置，用内置默认)", it.subtitle ?: @""];
+            }
         } else if (it.kind == DTItemKindList) {
             id v = DTObj(it.key);
             NSString *cur = [v isKindOfClass:[NSArray class]] ? [(NSArray *)v componentsJoinedByString:@","]
@@ -410,8 +424,10 @@ static void DTReload(UIViewController *host) {
                                                            preferredStyle:UIAlertControllerStyleAlert];
         [a addTextFieldWithConfigurationHandler:^(UITextField *tf) {
             if (isNum) {
-                tf.keyboardType = UIKeyboardTypeDecimalPad;
-                tf.text = [NSString stringWithFormat:@"%g", DTDouble(it.key, 0)];
+                // DecimalPad 打不出负号（余额偏移设不了 -50），改用带标点的数字键盘
+                tf.keyboardType = UIKeyboardTypeNumbersAndPunctuation;
+                tf.text = DTObj(it.key) ? [NSString stringWithFormat:@"%g", DTDouble(it.key, 0)] : @"";
+                tf.placeholder = @"留空 = 恢复内置默认";
             } else if (isList) {
                 id v = DTObj(it.key);
                 tf.text = [v isKindOfClass:[NSArray class]] ? [(NSArray *)v componentsJoinedByString:@","]
@@ -428,7 +444,8 @@ static void DTReload(UIViewController *host) {
         [a addAction:[UIAlertAction actionWithTitle:@"保存" style:UIAlertActionStyleDefault handler:^(UIAlertAction *x) {
             NSString *v = a.textFields.firstObject.text ?: @"";
             if (isNum) {
-                DTSetDouble(it.key, v.doubleValue);
+                if (v.length == 0) DTSetObj(it.key, nil);   // 删除键 = 回到模块内置默认
+                else               DTSetDouble(it.key, v.doubleValue);
             } else if (isList) {
                 NSMutableArray *arr = [NSMutableArray array];
                 NSCharacterSet *ws = [NSCharacterSet whitespaceAndNewlineCharacterSet];
@@ -500,7 +517,18 @@ static DTGearTarget *gGearTarget = nil;
 static void DTInstallGear(void) {
     if (gGear) return;
     UIWindow *win = [UIApplication sharedApplication].keyWindow;
-    if (!win) return;
+    if (!win) win = [UIApplication sharedApplication].windows.firstObject;
+    if (!win) {
+        // 原来这里直接 return，keyWindow 还没就绪就永久没有设置入口。
+        static int tries = 0;
+        if (tries++ < 25) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ DTInstallGear(); });
+        } else {
+            DTLog(@"settings: gear gave up, no keyWindow");
+        }
+        return;
+    }
     gGearTarget = [DTGearTarget new];
 
     CGFloat s = 34;
@@ -514,6 +542,12 @@ static void DTInstallGear(void) {
     [win addSubview:gGear];
 
     DTLog(@"settings: gear installed at %@", NSStringFromCGRect(gGear.frame));
+}
+
+- (NSString *)tableView:(UITableView *)tv titleForFooterInSection:(NSInteger)s {
+    if (s != (NSInteger)self.sections.count - 1) return nil;
+    return @"以上开关都在微信启动时读取一次：改完请上滑关掉微信再从桌面打开，"
+            "只退到后台不会生效。诊断包在「调试」组最上面。";
 }
 
 void DTModuleSettingsInstall(void) {

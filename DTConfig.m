@@ -3,6 +3,7 @@
 //
 
 #import "DTConfig.h"
+#import "DTLog.h"
 
 static NSString *const kDTMigratedFlag = @"DTMigratedV1";
 
@@ -99,12 +100,44 @@ BOOL DTImportJSON(NSString *json) {
     id obj = [NSJSONSerialization JSONObjectWithData:d options:0 error:NULL];
     if (![obj isKindOfClass:[NSDictionary class]]) return NO;
 
+    // JSON 的 null 会解成 NSNull，而 NSNull 不是 property-list 类型：
+    // 直接 setObject: 会抛 NSInvalidArgumentException（控制台复现即闪退）。
+    // 这里递归清洗：NSNull → 删除键，非 plist 类型 → 丢弃，数组/字典同步递归。
+    __block id (^clean)(id);
+    clean = ^id(id v) {
+        if (!v || [v isKindOfClass:[NSNull class]]) return nil;
+        if ([v isKindOfClass:[NSArray class]]) {
+            NSMutableArray *a = [NSMutableArray array];
+            for (id e in (NSArray *)v) { id c = clean(e); if (c) [a addObject:c]; }
+            return a;
+        }
+        if ([v isKindOfClass:[NSDictionary class]]) {
+            NSMutableDictionary *m = [NSMutableDictionary dictionary];
+            for (NSString *k in (NSDictionary *)v) {
+                id c = clean(((NSDictionary *)v)[k]);
+                if (c) m[k] = c;
+            }
+            return m;
+        }
+        if ([v isKindOfClass:[NSString class]] || [v isKindOfClass:[NSNumber class]]) return v;
+        return nil;
+    };
+
+    NSUserDefaults *u = DTDefaults();
+    BOOL ok = YES;
     for (NSString *k in (NSDictionary *)obj) {
         if (![k hasPrefix:@"DT"]) continue;
-        [DTDefaults() setObject:((NSDictionary *)obj)[k] forKey:k];
+        id v = clean(((NSDictionary *)obj)[k]);
+        @try {
+            if (v) [u setObject:v forKey:k];
+            else   [u removeObjectForKey:k];    // null / 非法类型 = 恢复内置默认
+        } @catch (NSException *e) {
+            DTLog(@"config: import skip %@ (%@)", k, e.reason);
+            ok = NO;
+        }
     }
     DTFlush();
-    return YES;
+    return ok;
 }
 
 // 旧插件键 → 本插件键。只迁移能一一对应的，其余保持原键不动（旧插件还在时仍生效）。
@@ -126,7 +159,8 @@ void DTMigrateFromLegacyIfNeeded(void) {
         {"theGroupHeadImageBOOL",  "DTGroupAvatarEnable"},
         // 朋友圈尾巴
         {"editTimeLinePhoneText",  "DTMomentsTailPhone"},
-        {"editTimeLineComputerText","DTMomentsTailPC"},
+        // editTimeLineComputerText 不迁移：本插件只改手机端来源，DTMomentsTail.m 里
+        // 没有对应实现，迁过来会变成一个谁也不读的孤儿键。
     };
     for (size_t i = 0; i < sizeof(table)/sizeof(table[0]); i++) {
         NSString *src = @(table[i].legacy);

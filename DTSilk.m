@@ -117,6 +117,10 @@ static BOOL DTSendVoice(NSData *silk, NSUInteger seconds) {
             // 参数是内部结构，没有公开构造方式，这里只记录不硬调，避免崩
         }
     }
+    // 60 秒是微信语音上限，超了对方收不到
+    if (ms < 1000)  ms = 1000;
+    if (ms > 60000) ms = 60000;
+
 
     // 路径 2：CMessageMgr 的发送语音（MiYou / HB 都用这条）
     if (mgr) {
@@ -177,11 +181,15 @@ void DTSilkConvertFile(NSString *path, void (^done)(BOOL ok, NSString *msg)) {
 
         NSUInteger frames = 0, bytes = 0;
         DTSilkInspect(silk, &frames, &bytes);
-        NSUInteger sec = (frames * 480) / 24000;
+        // 向上取整：49 帧 = 0.98 秒，整除会算成 0 秒，微信收到就是一条 0 秒语音。
+        NSUInteger sec = (frames * 480 + 23999) / 24000;
+        if (sec < 1) sec = 1;
         DTLog(@"silk: encoded frames=%lu bytes=%lu sec=%lu", (unsigned long)frames, (unsigned long)bytes, (unsigned long)sec);
 
-        BOOL ok = DTSendVoice(silk, sec);
+        // 发送必须回主线程：DTSendVoice 里走 CMessageMgr 切会话 / 写 DB / 刷 UI，
+        // 这些接口不是线程安全的，后台线程调用表现为「没反应」或写库卡死。
         dispatch_async(dispatch_get_main_queue(), ^{
+            BOOL ok = DTSendVoice(silk, sec);
             if (done) done(ok, ok
                 ? [NSString stringWithFormat:@"已发送 %lu 秒语音", (unsigned long)sec]
                 : @"编码成功但发送通道未命中，见日志");

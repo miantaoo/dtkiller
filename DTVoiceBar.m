@@ -519,7 +519,7 @@ static UIView *DTCellContent(UIView *cell) {
 }
 
 static void DTMountBar(UIView *cell) {
-    if (!DTBool(kEn, YES)) return;
+    if (!DTBool(kEn, NO)) return;
     if (!DTCellIsVoice(cell)) return;
 
 
@@ -564,7 +564,7 @@ static void DTMountBar(UIView *cell) {
 #pragma mark - 安装
 
 void DTModuleVoiceBarInstall(void) {
-    if (!DTBool(kEn, YES)) { DTLog(@"voicebar: disabled"); return; }
+    if (!DTBool(kEn, NO)) { DTLog(@"voicebar: disabled"); return; }
 
     // 1) 播放器
     Class pc = DTFindPlayerClass();
