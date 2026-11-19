@@ -64,8 +64,10 @@ void DTModuleMomentsTailInstall(void) {
             SEL sel = NSSelectorFromString(s);
             Method m = class_getInstanceMethod(c, sel);
             if (!m) continue;
-            const char *rt = method_getTypeEncoding(m);
-            if (!rt || rt[0] != '@') continue;         // 只要返回对象的
+            char *rt = method_copyReturnType(m);        // 只取返回类型，别用 getTypeEncoding 猜
+            BOOL isObj = (rt && rt[0] == '@');
+            if (rt) free(rt);
+            if (!isObj) continue;
 
             [hookedCls addObject:cn];
             __block Class wc = c;
@@ -104,7 +106,8 @@ void DTModuleMomentsTailInstall(void) {
                 UILabel *l = (UILabel *)v;
                 if (l.text.length == 0) return NO;
                 NSString *rep = DTReplaceTail(l.text, want);
-                if (rep) l.text = rep;
+                // 文本没变就别赋值，否则每次 layout 都触发重绘，朋友圈滚起来会掉帧
+                if (rep && ![rep isEqualToString:l.text]) l.text = rep;
                 return NO;
             });
         }));

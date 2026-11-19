@@ -522,10 +522,6 @@ static void DTMountBar(UIView *cell) {
     if (!DTBool(kEn, YES)) return;
     if (!DTCellIsVoice(cell)) return;
 
-    // 已有就不重复加
-    for (UIView *v in cell.subviews) {
-        if (v.tag == kBarTag) return;
-    }
 
     // 找气泡：优先高度 25~70 的矩形子视图
     __block UIView *bubble = nil;
@@ -545,6 +541,15 @@ static void DTMountBar(UIView *cell) {
         }
     }
     if (!bubble) bubble = cell;
+
+    // 去重：bar 是挂在 bubble 上的（不是 cell），所以必须查 bubble.subviews。
+    // 原来查 cell.subviews 永远查不到，语音气泡每布局一次就摞一条新进度条，滚两下就卡死。
+    for (UIView *v in bubble.subviews) {
+        if ([v isKindOfClass:[DTVoiceBarView class]]) {
+            gBar = (DTVoiceBarView *)v;
+            return;
+        }
+    }
 
     if (!gPlayingMsg) {
         id w = DTObjIvar(cell, "m_msgWrap");

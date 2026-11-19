@@ -1,11 +1,21 @@
 //
 //  DTClassFinder.m
 //
+//  按 selector / 名字片段反查微信里承载它的类。
+//  性能要点：微信有 2 万多个类，一次全量枚举要 0.2~1 秒，
+//  所以类名表只枚举一次并缓存，每个 selector 的查询结果也缓存。
+//
 
 #import "DTClassFinder.h"
 #import <objc/runtime.h>
 #import <mach-o/dyld.h>
+#import <pthread.h>
 #import <string.h>
+
+static NSArray<NSString *> *gNames = nil;
+static NSMutableDictionary<NSString *, NSArray<NSString *> *> *gBySel = nil;
+static NSMutableDictionary<NSString *, NSArray<NSString *> *> *gOwner = nil;
+static pthread_mutex_t gCFLock = PTHREAD_MUTEX_INITIALIZER;
 
 static void *DTWeChatImage(void) {
     uint32_t cnt = _dyld_image_count();
@@ -19,57 +29,116 @@ static void *DTWeChatImage(void) {
     return (void *)_dyld_get_image_header(0);
 }
 
-NSArray<NSString *> *DTWeChatClassNames(void) {
-    static NSArray *cache = nil;
-    static dispatch_once_t once;
-    // 注意：微信会在启动后动态注册类（WCPure 那类做法），所以缓存 3 秒后失效一次
-    static NSTimeInterval cachedAt = 0;
-    NSTimeInterval now = CFAbsoluteTimeGetCurrent();
-    if (cache && (now - cachedAt) < 3.0) return cache;
+void DTInvalidateClassCache(void) {
+    pthread_mutex_lock(&gCFLock);
+    gNames = nil;
+    gBySel = nil;
+    gOwner = nil;
+    pthread_mutex_unlock(&gCFLock);
+}
 
+NSArray<NSString *> *DTWeChatClassNames(void) {
+    pthread_mutex_lock(&gCFLock);
+    NSArray *cached = gNames;
+    pthread_mutex_unlock(&gCFLock);
+    if (cached) return cached;
+
+    // —— 枚举放在锁外：这一步可能耗时几百毫秒，不能持锁 ——
     unsigned int c = 0;
     const char **names = objc_copyClassNamesForImage((const char *)DTWeChatImage(), &c);
-    NSMutableArray *arr = [NSMutableArray arrayWithCapacity:c];
+    NSMutableArray *arr = [NSMutableArray arrayWithCapacity:(c ? c : 64)];
     if (names) {
         for (unsigned int i = 0; i < c; i++) {
             if (names[i]) [arr addObject:@(names[i])];
         }
         free(names);
     }
-    cache = arr;
-    cachedAt = now;
-    return arr;
+
+    // 兜底：镜像定位失败（比如注入到的镜像名不带 WeChat）时退回全量枚举
+    if (arr.count == 0) {
+        int total = objc_getClassList(NULL, 0);
+        if (total > 0) {
+            Class *cls = (Class *)malloc(sizeof(Class) * (size_t)total);
+            if (cls) {
+                total = objc_getClassList(cls, total);
+                for (int i = 0; i < total; i++) {
+                    const char *nm = class_getName(cls[i]);
+                    if (nm) [arr addObject:@(nm)];
+                }
+                free(cls);
+            }
+        }
+    }
+
+    NSArray *res = [arr copy];
+    pthread_mutex_lock(&gCFLock);
+    if (!gNames) {
+        gNames = res;
+        gBySel = [NSMutableDictionary dictionary];
+        gOwner = [NSMutableDictionary dictionary];
+    }
+    NSArray *r = gNames;
+    pthread_mutex_unlock(&gCFLock);
+    return r;
 }
 
 NSArray<NSString *> *DTClassesForSelector(const char *selName) {
     if (!selName) return @[];
+    NSString *key = @(selName);
     SEL sel = sel_registerName(selName);
+
+    pthread_mutex_lock(&gCFLock);
+    NSArray *hit = gBySel[key];
+    pthread_mutex_unlock(&gCFLock);
+    if (hit) return hit;
+
     NSMutableArray *out = [NSMutableArray array];
     for (NSString *n in DTWeChatClassNames()) {
         Class c = objc_getClass(n.UTF8String);
-        if (!c) continue;
-        if (class_getInstanceMethod(c, sel)) [out addObject:n];
+        if (c && class_getInstanceMethod(c, sel)) [out addObject:n];
     }
-    return out;
+    NSArray *res = [out copy];
+
+    pthread_mutex_lock(&gCFLock);
+    if (!gBySel) gBySel = [NSMutableDictionary dictionary];
+    gBySel[key] = res;
+    pthread_mutex_unlock(&gCFLock);
+    return res;
 }
 
 NSArray<NSString *> *DTOwnerClassesForSelector(const char *selName) {
     if (!selName) return @[];
+    NSString *key = @(selName);
     SEL sel = sel_registerName(selName);
+
+    pthread_mutex_lock(&gCFLock);
+    NSArray *hit = gOwner[key];
+    pthread_mutex_unlock(&gCFLock);
+    if (hit) return hit;
+
     NSMutableArray *out = [NSMutableArray array];
     for (NSString *n in DTWeChatClassNames()) {
         Class c = objc_getClass(n.UTF8String);
         if (!c) continue;
+        // 便宜的预过滤：没这个方法（含继承来的）就不用 malloc 方法表了
+        if (!class_getInstanceMethod(c, sel)) continue;
+
         unsigned int mc = 0;
         Method *ms = class_copyMethodList(c, &mc);
         BOOL own = NO;
         for (unsigned int k = 0; k < mc; k++) {
             if (method_getName(ms[k]) == sel) { own = YES; break; }
         }
-        free(ms);
+        if (ms) free(ms);
         if (own) [out addObject:n];
     }
-    return out;
+    NSArray *res = [out copy];
+
+    pthread_mutex_lock(&gCFLock);
+    if (!gOwner) gOwner = [NSMutableDictionary dictionary];
+    gOwner[key] = res;
+    pthread_mutex_unlock(&gCFLock);
+    return res;
 }
 
 Class DTFirstClassForSelector(const char *selName) {

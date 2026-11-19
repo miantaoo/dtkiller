@@ -4,8 +4,9 @@
 //  时序设计（关键）：
 //    - constructor 阶段：微信的 ObjC 类已经 +load 完（dyld 先跑 +load 再跑 constructor），
 //      所以反检测 hook 必须在这里就装好，抢在 ClientCheckMgr 第一次 checkHookWithSeq: 之前。
-//    - UI 类相关的模块（语音条、输入栏、设置页）等 didFinishLaunching 之后再装，
-//      否则拿不到 keyWindow / MMServiceCenter。
+//    - UI 类相关的模块等 didFinishLaunching 之后再装，否则拿不到 keyWindow / MMServiceCenter。
+//    - 装 hook 时要按 selector 反查宿主类，一次全量扫描几百毫秒，
+//      所以分成 4 批错开执行，避免微信启动时卡一下。
 //
 
 #import <Foundation/Foundation.h>
@@ -16,43 +17,76 @@
 #import "DTLog.h"
 #import "DTModules.h"
 
-static BOOL gInstalled = NO;
+static BOOL gScheduled = NO;
+
+/// 一批模块安装：包一层 autoreleasepool，单个模块抛异常不影响后面的
+static void DTRunBatch(int idx) {
+    @autoreleasepool {
+        switch (idx) {
+            case 0:
+                DTModuleVoiceBarInstall();
+                DTModuleVoiceFwdInstall();
+                DTModuleSwipeQuoteInstall();
+                break;
+            case 1:
+                DTModuleSilkInstall();
+                DTModuleBalanceInstall();
+                DTModuleGroupAvatarInstall();
+                DTModuleMomentsTailInstall();
+                break;
+            case 2:
+                DTModuleRadiusInstall();
+                DTModuleAutoLoginInstall();
+                DTModuleStepInstall();
+                break;
+            case 3:
+                DTModuleAdBlockInstall();
+                DTModuleBubblePureInstall();
+                break;
+            case 4:
+                DTModuleBatch3Install();
+                DTModuleBatch4Install();
+                break;
+            case 5:
+                DTModuleSettingsInstall();
+                break;
+            default:
+                break;
+        }
+        DTLog(@"core: batch %d done", idx);
+    }
+}
 
 static void DTInstallUI(void) {
-    if (gInstalled) return;
-    gInstalled = YES;
+    if (gScheduled) return;
+    gScheduled = YES;
 
-    DTMigrateFromLegacyIfNeeded();
+    @autoreleasepool {
+        DTMigrateFromLegacyIfNeeded();
 
-    DTModuleGuardInstall();          // 幂等，前面已经装过一次
-    DTModuleVoiceBarInstall();       // 语音进度条
-    DTModuleVoiceFwdInstall();       // 语音转发
-    DTModuleSilkInstall();           // SILK 编解码
-    DTModuleBalanceInstall();        // 改余额
-    DTModuleGroupAvatarInstall();    // 群头像
-    DTModuleMomentsTailInstall();    // 朋友圈尾巴
-    DTModuleSwipeQuoteInstall();
-    DTModuleRevokeInstall();         // 防撤回（幂等）
-    DTModuleCallKitInstall();        // 来电转 CallKit（幂等）
+        // 这三个在 constructor 里已经装过一次，这里是幂等补齐
+        DTModuleGuardInstall();
+        DTModuleRevokeInstall();
+        DTModuleCallKitInstall();
+    }
 
-    // —— 需求确认单里的 18 项 ——
-    DTModuleRadiusInstall();         // P0-1  头像圆角
-    DTModuleAutoLoginInstall();      // P0-2  自动确认登录
-    DTModuleStepInstall();           // P0-3  虚拟步数
-    DTModuleAdBlockInstall();        // P0-4~7 广告/视频号/Safari/自动下载
-    DTModuleBubblePureInstall();     // P0-8~9 气泡美化 + 界面净化
-    DTModuleBatch3Install();         // P0-10~11 / P1-12~13
-    DTModuleBatch4Install();         // P1-14~18
-
-    DTModuleSettingsInstall();       // 设置页入口
-
-    DTLog(@"core: all UI modules installed");
+    // 18 项功能 + 设置页，按 0.35 秒间隔分批，每批控制在百毫秒级
+    for (int i = 0; i < 6; i++) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(i * 0.35 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            DTRunBatch(i);
+            if (i == 5) DTLog(@"core: all UI modules installed");
+        });
+    }
 }
 
 __attribute__((constructor))
 static void DTCoreInit(void) {
     @autoreleasepool {
-        DTLog(@"core: injected into %@", [[NSBundle mainBundle] bundleIdentifier]);
+        DTLog(@"core: injected into %@ v%@ (dylib %@)",
+              [[NSBundle mainBundle] bundleIdentifier],
+              [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
+              @"0.1.1");
 
         // 1) 反检测：立刻装，越早越好
         DTModuleGuardInstall();
@@ -65,7 +99,7 @@ static void DTCoreInit(void) {
                         object:nil
                          queue:[NSOperationQueue mainQueue]
                     usingBlock:^(NSNotification *note) {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)),
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{
                 DTInstallUI();
             });

@@ -61,22 +61,69 @@ UIViewController *DTViewControllerOf(UIView *view) {
 }
 
 id DTGetIvar(id obj, const char *name) {
-    if (!obj) return nil;
+    if (!obj || !name) return nil;
     Class c = object_getClass(obj);
     while (c) {
         Ivar v = class_getInstanceVariable(c, name);
-        if (v) return object_getIvar(obj, v);
+        if (v) {
+            const char *t = ivar_getTypeEncoding(v);
+            if (!t || !t[0]) return nil;
+            char *p = (char *)((__bridge void *)obj) + ivar_getOffset(v);
+            switch (t[0]) {
+                case '@':
+                case '#':
+                    return object_getIvar(obj, v);
+                case 'c': return @(*(char *)p);
+                case 'B': return @(*(unsigned char *)p != 0);
+                case 's': return @(*(short *)p);
+                case 'S': return @(*(unsigned short *)p);
+                case 'i': return @(*(int *)p);
+                case 'I': return @(*(unsigned int *)p);
+                case 'l': return @(*(long *)p);
+                case 'L': return @(*(unsigned long *)p);
+                case 'q': return @(*(long long *)p);
+                case 'Q': return @(*(unsigned long long *)p);
+                case 'f': return @(*(float *)p);
+                case 'd': return @(*(double *)p);
+                default:  return nil;
+            }
+        }
         c = class_getSuperclass(c);
     }
     return nil;
 }
 
 BOOL DTSetIvar(id obj, const char *name, id value) {
-    if (!obj) return NO;
+    if (!obj || !name) return NO;
     Class c = object_getClass(obj);
     while (c) {
         Ivar v = class_getInstanceVariable(c, name);
-        if (v) { object_setIvar(obj, v, value); return YES; }
+        if (v) {
+            const char *t = ivar_getTypeEncoding(v);
+            if (!t || !t[0]) return NO;
+            if (t[0] == '@' || t[0] == '#') {
+                object_setIvar(obj, v, value);
+                return YES;
+            }
+            NSNumber *n = [value isKindOfClass:[NSNumber class]] ? (NSNumber *)value : nil;
+            if (!n) return NO;
+            char *p = (char *)((__bridge void *)obj) + ivar_getOffset(v);
+            switch (t[0]) {
+                case 'c': *(char *)p = (char)n.charValue; return YES;
+                case 'B': *(unsigned char *)p = n.boolValue ? 1 : 0; return YES;
+                case 's': *(short *)p = (short)n.shortValue; return YES;
+                case 'S': *(unsigned short *)p = (unsigned short)n.unsignedShortValue; return YES;
+                case 'i': *(int *)p = (int)n.intValue; return YES;
+                case 'I': *(unsigned int *)p = (unsigned int)n.unsignedIntValue; return YES;
+                case 'l': *(long *)p = (long)n.longValue; return YES;
+                case 'L': *(unsigned long *)p = (unsigned long)n.unsignedLongValue; return YES;
+                case 'q': *(long long *)p = (long long)n.longLongValue; return YES;
+                case 'Q': *(unsigned long long *)p = (unsigned long long)n.unsignedLongLongValue; return YES;
+                case 'f': *(float *)p = n.floatValue; return YES;
+                case 'd': *(double *)p = n.doubleValue; return YES;
+                default:  return NO;
+            }
+        }
         c = class_getSuperclass(c);
     }
     return NO;

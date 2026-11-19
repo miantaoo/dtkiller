@@ -15,6 +15,7 @@
 #import "DTLog.h"
 #import "DTModules.h"
 #import "DTUtil.h"
+#import "DTDiag.h"
 
 #pragma mark - 设置项模型
 
@@ -145,6 +146,13 @@ static void DTReload(UIViewController *host) {
     });
 
     // ---------------- 调试 ----------------
+    DTItem *diag = act(@"★ 导出诊断包", @"日志+配置+设备信息，直接发给我", ^(UIViewController *host) {
+        DTDiagShare(host);
+    });
+    DTItem *copyTail = act(@"复制最近 200 行日志", @"复制后粘贴发给我，最省事", ^(UIViewController *host) {
+        DTDiagCopyTail(200);
+        DTAlert(host, @"已复制到剪贴板，去聊天窗口粘贴即可。");
+    });
     DTItem *logTail = act(@"查看日志", @"最近 200 行", ^(UIViewController *host) {
         if ([host isKindOfClass:[DTSettingsVC class]]) [(DTSettingsVC *)host showLog];
     });
@@ -153,6 +161,11 @@ static void DTReload(UIViewController *host) {
         if (![[NSFileManager defaultManager] fileExistsAtPath:p]) { DTAlert(host, @"日志还没生成"); return; }
         UIActivityViewController *av = [[UIActivityViewController alloc] initWithActivityItems:@[[NSURL fileURLWithPath:p]]
                                                                         applicationActivities:nil];
+        if (av.popoverPresentationController) {
+            av.popoverPresentationController.sourceView = host.view;
+            av.popoverPresentationController.sourceRect =
+                CGRectMake(host.view.bounds.size.width / 2, host.view.bounds.size.height / 2, 1, 1);
+        }
         [host presentViewController:av animated:YES completion:nil];
     });
     DTItem *exportCfg = act(@"导出配置", @"生成 config.json", ^(UIViewController *host) {
@@ -161,6 +174,11 @@ static void DTReload(UIViewController *host) {
         [json writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:NULL];
         UIActivityViewController *av = [[UIActivityViewController alloc] initWithActivityItems:@[[NSURL fileURLWithPath:p]]
                                                                         applicationActivities:nil];
+        if (av.popoverPresentationController) {
+            av.popoverPresentationController.sourceView = host.view;
+            av.popoverPresentationController.sourceRect =
+                CGRectMake(host.view.bounds.size.width / 2, host.view.bounds.size.height / 2, 1, 1);
+        }
         [host presentViewController:av animated:YES completion:nil];
     });
     DTItem *importCfg = act(@"从粘贴板导入配置", @"把 config.json 内容复制后点这里", ^(UIViewController *host) {
@@ -279,6 +297,8 @@ static void DTReload(UIViewController *host) {
            sw(@"@全体", @"非管理员只能发普通文本", @"DTAtAllEnable", NO),
            txt(@"  触发词", @"逗号分隔", @"DTAtAllWords"),
            sw(@"详细日志", @"写更多行到 app.log", @"DTLogVerbose", NO),
+           diag,
+           copyTail,
            logTail,
            exportLog,
            exportCfg,

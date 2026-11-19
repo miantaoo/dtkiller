@@ -28,6 +28,9 @@ NSArray<NSString *> *DTClassesMatching(const char *fragment);
 /// 便捷：取类，不存在返回 Nil
 Class DTCls(const char *name);
 
+/// 清空类名/查询缓存（微信运行中动态注册类之后想重新扫时用）
+void DTInvalidateClassCache(void);
+
 #ifdef __cplusplus
 }
 #endif
