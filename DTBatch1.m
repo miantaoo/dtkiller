@@ -395,7 +395,7 @@ static void DTDlInstall(void)
             if (!c) continue;
             Method m = class_getInstanceMethod(c, s);
             if (!m) continue;
-            const char *rt = method_getReturnType(m);
+            char rtb[16] = {0}; method_getReturnType(m, rtb, sizeof(rtb)); const char *rt = rtb;
             if (!rt || rt[0] != 'B') continue;     // 只碰返回 BOOL 的
             if (method_getNumberOfArguments(m) != 3) {
                 if (method_getNumberOfArguments(m) == 2) {

@@ -98,7 +98,7 @@ static int DTStepHookOne(Class c, const char *selName)
     Method m = class_getInstanceMethod(c, sel);
     if (!m) return 0;
 
-    const char *rt = method_getReturnType(m);
+    char rtb[16] = {0}; method_getReturnType(m, rtb, sizeof(rtb)); const char *rt = rtb;
     IMP imp = NULL;
     if (rt && (rt[0] == 'q' || rt[0] == 'Q' || rt[0] == 'l')) {
         imp = (IMP)DTStepRetQ;
