@@ -51,6 +51,7 @@ static NSString *DTMsgContent(id wrap)
 #define kAdSearch      @"DTAdBlockSearch"       // 搜一搜
 
 static BOOL gAdMoments, gAdBrand, gAdMiniApp, gAdSearch;
+static BOOL gFinderMoments;   // 合并闸门（下面 DTBeforeReturnDataItem）也要用，提前声明
 
 /// 判断一个数据项是不是广告。字段名在 8.x 里有 isAd / isAdvertisement / m_isAd 几种写法，
 /// 能读到一个为真就算广告。
@@ -197,7 +198,7 @@ static void DTAdInstall(void)
 #define kFinderMoments  @"DTFinderBlockMoments"    // 朋友圈卡片
 // 聊天里的分享卡片永远不拦
 
-static BOOL gFinderDiscover, gFinderMe, gFinderMoments;
+static BOOL gFinderDiscover, gFinderMe;
 
 /// 发现页 / 我页的入口项：返回 NO 让这一行不显示。
 static BOOL DTFinderShouldShow(id self, SEL _cmd)
@@ -302,7 +303,7 @@ static void DTSafariOpen(NSString *url)
 /// 不找的话「公众号文章不转 Safari」这条需求就是空的。
 static id DTSafariMsgWrapOf(id self)
 {
-    static NSString *names[] = { "m_msgWrap", "m_msg", "m_oMsgWrap", "msgWrap" };
+    static const char *names[] = { "m_msgWrap", "m_msg", "m_oMsgWrap", "msgWrap" };
     for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
         id v = DTGetIvar(self, names[i]);
         if (v) return v;
@@ -393,6 +394,22 @@ static BOOL DTDlWanted(id msgWrap)
         if (isGroup && !gDlGroup) return NO;
         if (!isGroup && !gDlPrivate) return NO;
     }
+
+    // 体积上限：能拿到大小才判；拿不到（多数视频/文件在下载前是 0）就放行。
+    if (gDlMaxMB > 0) {
+        static const char *sizeKeys[] = { "m_uiFileSize", "m_uFileSize", "m_nFileSize", "fileSize" };
+        for (int i = 0; i < 4; i++) {
+            id v = DTGetIvar(msgWrap, sizeKeys[i]);
+            if ([v isKindOfClass:[NSNumber class]]) {
+                long long sz = [v longLongValue];
+                if (sz > 0 && sz > (long long)gDlMaxMB * 1024 * 1024) {
+                    DTLog(@"dl: 跳过 %s，%lld 字节 > 上限 %ldMB", sizeKeys[i], sz, (long)gDlMaxMB);
+                    return NO;
+                }
+                break;
+            }
+        }
+    }
     return YES;
 }
 
@@ -450,7 +467,8 @@ static void DTDlInstall(void)
             }
         }
     }
-    DTLog(@"dl: 装了 %d 个点，网络模式 %ld，上限 %ldMB", n, (long)gDlNet, (long)gDlMaxMB);
+    DTLog(@"dl: 装了 %d 个点，网络模式 %ld，上限 %ldMB（拿不到体积时该上限不生效）",
+          n, (long)gDlNet, (long)gDlMaxMB);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
