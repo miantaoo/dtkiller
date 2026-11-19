@@ -1,0 +1,9 @@
+Package: com.dt.wechatkiller
+Name: DTKiller
+Version: 0.1.0
+Architecture: iphoneos-arm64
+Description: 微信增强（自研重写版）：语音进度条、左滑引用、防撤回、CallKit、净化、钱包显示等
+Maintainer: DT
+Author: DT
+Section: Tweaks
+Depends: firmware (>= 15.0)

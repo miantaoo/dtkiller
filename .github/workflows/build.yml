@@ -1,0 +1,83 @@
+name: build
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装编译依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            clang make git curl xz-utils file libplist-utils zip
+
+      - name: 安装 ldid（Theos 签名必需）
+        run: |
+          curl -fsSL -o /tmp/ldid \
+            https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_linux_x86_64
+          chmod +x /tmp/ldid
+          sudo mv /tmp/ldid /usr/local/bin/ldid
+          ldid -h 2>&1 | head -2 || true
+
+      - name: 安装 Theos
+        run: |
+          git clone --recursive --depth 1 https://github.com/theos/theos.git "$HOME/theos"
+          echo "THEOS=$HOME/theos" >> "$GITHUB_ENV"
+
+      - name: 安装 iOS SDK
+        run: |
+          git clone --depth 1 https://github.com/theos/sdks.git /tmp/sdks
+          mkdir -p "$HOME/theos/sdks"
+          SDK=$(ls -d /tmp/sdks/iPhoneOS*.sdk 2>/dev/null | sort -V | tail -1)
+          if [ -z "$SDK" ]; then echo "没找到 SDK"; exit 1; fi
+          echo "使用 $SDK"
+          cp -R "$SDK" "$HOME/theos/sdks/"
+          ls "$HOME/theos/sdks"
+
+      - name: 可选 —— 拉 SILK SDK（失败不影响编译）
+        continue-on-error: true
+        run: |
+          if [ -d vendor/silk/src ]; then
+            echo "vendor/silk 已存在，跳过"
+            exit 0
+          fi
+          git clone --depth 1 https://github.com/kn007/silk-v3-decoder.git /tmp/silk
+          mkdir -p vendor
+          cp -R /tmp/silk/silk vendor/silk
+          rm -f vendor/silk/src/*.S
+
+      - name: 编译
+        run: make package FINALPACKAGE=1
+
+      - name: 收集产物
+        if: always()
+        run: |
+          mkdir -p artifacts
+          cp -v packages/*.deb artifacts/ 2>/dev/null || true
+          find .theos -name "DTKiller.dylib" -exec cp -v {} artifacts/ \; 2>/dev/null || true
+          ls -l artifacts || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: DTKiller
+          path: artifacts/*
+          if-no-files-found: warn
+
+      - name: 失败时打印诊断
+        if: failure()
+        run: |
+          echo "=== 环境 ==="
+          clang --version | head -2
+          echo "THEOS=$THEOS"
+          ls "$THEOS" 2>/dev/null | head
+          ls "$THEOS/sdks" 2>/dev/null
+          echo "=== 上一次编译输出 ==="
+          find . -name "*.log" -o -name "*.txt" | head -20

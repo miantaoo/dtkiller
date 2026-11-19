@@ -1,0 +1,19 @@
+# Theos
+.theos/
+packages/
+obj/
+.symlinks/
+layout/DEBIAN/
+
+# 编译中间产物
+*.o
+*.dylib
+*.deb
+*.log
+
+# 可选的 SILK SDK（由 CI 自动拉，不建议提交）
+vendor/silk/
+
+# 系统垃圾
+.DS_Store
+Thumbs.db
