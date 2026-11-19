@@ -15,8 +15,14 @@ jobs:
       - name: 安装编译依赖
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends build-essential fakeroot rsync curl perl zip unzip xz-utils git libxml2 libtinfo5 || \
-          sudo apt-get install -y --no-install-recommends build-essential fakeroot rsync curl perl zip unzip xz-utils git libxml2
+          sudo apt-get install -y --no-install-recommends build-essential fakeroot rsync curl perl zip unzip xz-utils git file
+
+      - name: 可选依赖（缺了也能编）
+        continue-on-error: true
+        run: |
+          sudo apt-get install -y --no-install-recommends libxml2-dev libtinfo6 || true
+          sudo ln -sf /lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5 || true
+          sudo ldconfig || true
 
       - name: 安装 ldid（Theos 签名必需）
         run: |
