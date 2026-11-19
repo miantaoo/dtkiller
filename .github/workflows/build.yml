@@ -35,6 +35,14 @@ jobs:
         run: |
           set -e
           git clone --depth 1 https://github.com/theos/theos.git "$HOME/theos"
+          cd "$HOME/theos"
+          git submodule update --init --recursive --depth 1 || true
+          if [ ! -f "$HOME/theos/vendor/dm.pl/dm.pl" ]; then
+            echo "补 dm.pl"
+            rm -rf "$HOME/theos/vendor/dm.pl"
+            git clone --depth 1 https://github.com/theos/dm.pl.git "$HOME/theos/vendor/dm.pl"
+          fi
+          ls "$HOME/theos/vendor/dm.pl/dm.pl"
           mkdir -p "$HOME/theos/toolchain"
           ARCH=$(uname -m)
           echo "arch=$ARCH"
