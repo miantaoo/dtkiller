@@ -157,7 +157,7 @@ static void DTAttachSwipe(UIView *cell) {
     sw.direction = UISwipeGestureRecognizerDirectionLeft;
     sw.numberOfTouchesRequired = 1;
     sw.cancelsTouchesInView = NO;     // 不抢 cell 自己的点击
-    id proxy = [[DTGestureProxy alloc] initWithHandler:DTOnSwipe];
+    id proxy = [[DTGestureProxy alloc] initWithHandler:^(UIGestureRecognizer *g) { DTOnSwipe(g); }];
     [sw addTarget:proxy action:@selector(handle:)];
     objc_setAssociatedObject(sw, "dt_proxy", proxy, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     [cell addGestureRecognizer:sw];

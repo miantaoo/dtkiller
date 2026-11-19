@@ -223,6 +223,6 @@ void DTSilkPickFile(UIViewController *host) {
 
 void DTModuleSilkInstall(void) {
     if (!DTBool(kEn, YES)) { DTLog(@"silk: disabled"); return; }
-    DTLog(@"silk: installed, sdk=%d max=%ds", DTSilkAvailable(), DTInt(kMaxSec, 60));
+    DTLog(@"silk: installed, sdk=%d max=%ds", (int)DTSilkAvailable(), (int)DTInt(kMaxSec, 60));
     if (!DTSilkAvailable()) DTLog(@"silk: 要启用音乐转语音，请按 README 集成 vendor/silk");
 }

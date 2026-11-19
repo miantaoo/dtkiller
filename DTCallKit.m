@@ -78,7 +78,7 @@ static BOOL gDidInstall   = NO;
 }
 
 - (void)reportIncoming:(id)user type:(long)type msg:(id)msg display:(NSString *)name {
-    NSString *who = display;
+    NSString *who = name;
     if (!who.length && user) {
         for (NSString *k in @[@"m_nsNickName", @"m_nsRemark", @"m_nsUsrName", @"nickname"]) {
             @try {
