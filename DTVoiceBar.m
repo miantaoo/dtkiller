@@ -512,6 +512,12 @@ static BOOL DTCellIsVoice(id cell) {
     return DTIntIvar(wrap, "m_uiMessageType") == 34;
 }
 
+static UIView *DTCellContent(UIView *cell) {
+    if ([cell isKindOfClass:[UITableViewCell class]]) return [(UITableViewCell *)cell contentView];
+    if ([cell isKindOfClass:[UICollectionViewCell class]]) return [(UICollectionViewCell *)cell contentView];
+    return cell;
+}
+
 static void DTMountBar(UIView *cell) {
     if (!DTBool(kEn, YES)) return;
     if (!DTCellIsVoice(cell)) return;
@@ -524,7 +530,7 @@ static void DTMountBar(UIView *cell) {
     // 找气泡：优先高度 25~70 的矩形子视图
     __block UIView *bubble = nil;
     __block CGFloat bestArea = 0;
-    for (UIView *v in cell.contentView.subviews) {
+    for (UIView *v in DTCellContent(cell).subviews) {
         CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
         if (h < 20 || h > 90) continue;
         if ([v isKindOfClass:[UIImageView class]]) continue;
