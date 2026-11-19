@@ -13,6 +13,7 @@
 #import "DTUtil.h"
 #import "DTModules.h"
 
+static NSArray<NSString *> *DTObjArray(NSString *key);   // 前置声明（定义在下方）
 static NSInteger DTWrapType(id wrap)
 {
     id v = DTGetIvar(wrap, "m_uiMessageType");

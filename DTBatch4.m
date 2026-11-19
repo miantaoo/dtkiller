@@ -318,7 +318,7 @@ static void DTNotify(NSString *title, NSString *body)
 
     UNNotificationRequest *r = [UNNotificationRequest requestWithIdentifier:[[NSUUID UUID] UUIDString]
                                                                   content:c trigger:nil];
-    [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:r error:NULL];
+    [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:r withCompletionHandler:nil];
     DTLog(@"leave: 通知 %@ / %@", title, body);
 }
 
