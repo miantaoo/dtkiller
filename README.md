@@ -67,6 +67,8 @@ xcrun -sdk iphoneos clang -arch arm64 -arch arm64e \
 ```bash
 python tools/selfcheck.py out/dt   # 括号 / @end 配对 / #import 存在性
 python tools/lint.py    out/dt     # 未定义函数 / 全局变量 / 可见性（抓链接期 undefined）
+python tools/precheck.py out/dt    # C 函数参数个数 / @interface 未实现 / @selector 不存在
+python tools/ordercheck.py out/dt  # static 全局变量先用后声明（三个脚本都抓不到的那类编译错误）
 ```
 
 ---

@@ -94,6 +94,31 @@ NSString *DTExportJSON(void) {
     return d ? [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding] : @"{}";
 }
 
+/// 递归清洗成 property-list 安全的值。
+/// 写成 C 函数而不是 block：block 自递归要 __block 强捕获自己，clang 会报
+/// -Warc-retain-cycles；CI 开着 -Werror，那样直接编译失败。
+static id DTCleanPlist(id v) {
+    if (!v || [v isKindOfClass:[NSNull class]]) return nil;
+    if ([v isKindOfClass:[NSArray class]]) {
+        NSMutableArray *a = [NSMutableArray array];
+        for (id e in (NSArray *)v) {
+            id c = DTCleanPlist(e);
+            if (c) [a addObject:c];
+        }
+        return a;
+    }
+    if ([v isKindOfClass:[NSDictionary class]]) {
+        NSMutableDictionary *m = [NSMutableDictionary dictionary];
+        for (id k in (NSDictionary *)v) {
+            id c = DTCleanPlist(((NSDictionary *)v)[k]);
+            if (c) m[(NSString *)k] = c;
+        }
+        return m;
+    }
+    if ([v isKindOfClass:[NSString class]] || [v isKindOfClass:[NSNumber class]]) return v;
+    return nil;
+}
+
 BOOL DTImportJSON(NSString *json) {
     if (!json.length) return NO;
     NSData *d = [json dataUsingEncoding:NSUTF8StringEncoding];
@@ -103,31 +128,12 @@ BOOL DTImportJSON(NSString *json) {
     // JSON 的 null 会解成 NSNull，而 NSNull 不是 property-list 类型：
     // 直接 setObject: 会抛 NSInvalidArgumentException（控制台复现即闪退）。
     // 这里递归清洗：NSNull → 删除键，非 plist 类型 → 丢弃，数组/字典同步递归。
-    __block id (^clean)(id);
-    clean = ^id(id v) {
-        if (!v || [v isKindOfClass:[NSNull class]]) return nil;
-        if ([v isKindOfClass:[NSArray class]]) {
-            NSMutableArray *a = [NSMutableArray array];
-            for (id e in (NSArray *)v) { id c = clean(e); if (c) [a addObject:c]; }
-            return a;
-        }
-        if ([v isKindOfClass:[NSDictionary class]]) {
-            NSMutableDictionary *m = [NSMutableDictionary dictionary];
-            for (NSString *k in (NSDictionary *)v) {
-                id c = clean(((NSDictionary *)v)[k]);
-                if (c) m[k] = c;
-            }
-            return m;
-        }
-        if ([v isKindOfClass:[NSString class]] || [v isKindOfClass:[NSNumber class]]) return v;
-        return nil;
-    };
 
     NSUserDefaults *u = DTDefaults();
     BOOL ok = YES;
     for (NSString *k in (NSDictionary *)obj) {
         if (![k hasPrefix:@"DT"]) continue;
-        id v = clean(((NSDictionary *)obj)[k]);
+        id v = DTCleanPlist(((NSDictionary *)obj)[k]);
         @try {
             if (v) [u setObject:v forKey:k];
             else   [u removeObjectForKey:k];    // null / 非法类型 = 恢复内置默认
