@@ -22,21 +22,14 @@ jobs:
           sudo mv /tmp/ldid /usr/local/bin/ldid
           ldid -h 2>&1 | head -2 || true
 
-      - name: 安装 Theos（含 Linux 工具链子模块）
+      - name: 安装 Theos（含 Linux 工具链）
         run: |
           set -e
           git clone --depth 1 https://github.com/theos/theos.git "$HOME/theos"
-          cd "$HOME/theos"
-          git submodule update --init --recursive --depth 1
+          rm -rf "$HOME/theos/toolchain"
+          git clone --depth 1 https://github.com/theos/toolchain.git "$HOME/theos/toolchain"
           echo "THEOS=$HOME/theos" >> "$GITHUB_ENV"
-          echo "--- toolchain 内容 ---"
-          ls "$HOME/theos/toolchain" || true
-          if [ ! -x "$HOME/theos/toolchain/linux/iphone/bin/clang" ]; then
-            echo "!! 工具链缺失，尝试直接拉 theos/toolchain"
-            rm -rf "$HOME/theos/toolchain"
-            git clone --depth 1 https://github.com/theos/toolchain.git "$HOME/theos/toolchain"
-            ls "$HOME/theos/toolchain/linux/iphone/bin" || true
-          fi
+          ls "$HOME/theos/toolchain/linux/iphone/bin"
           "$HOME/theos/toolchain/linux/iphone/bin/clang" --version | head -3
 
       - name: 安装 iOS SDK
