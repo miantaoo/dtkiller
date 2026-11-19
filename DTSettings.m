@@ -68,6 +68,13 @@ static void DTReload(UIViewController *host) {
 @end
 
 @implementation DTSettingsVC
+- (NSString *)tableView:(UITableView *)tv titleForFooterInSection:(NSInteger)s {
+    // 所有开关都是启动时读一次，这里统一说明，省得用户以为改完立刻生效。
+    if (s != (NSInteger)self.sections.count - 1) return nil;
+    return @"以上开关都在微信启动时读取一次：改完请上滑关掉微信再从桌面打开，"
+            "只退到后台不会生效。诊断包在「调试」组最上面。";
+}
+
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -542,12 +549,6 @@ static void DTInstallGear(void) {
     [win addSubview:gGear];
 
     DTLog(@"settings: gear installed at %@", NSStringFromCGRect(gGear.frame));
-}
-
-- (NSString *)tableView:(UITableView *)tv titleForFooterInSection:(NSInteger)s {
-    if (s != (NSInteger)self.sections.count - 1) return nil;
-    return @"以上开关都在微信启动时读取一次：改完请上滑关掉微信再从桌面打开，"
-            "只退到后台不会生效。诊断包在「调试」组最上面。";
 }
 
 void DTModuleSettingsInstall(void) {
