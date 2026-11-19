@@ -205,7 +205,10 @@ static BOOL DTFinderShouldShow(id self, SEL _cmd)
     NSString *cn = NSStringFromClass([self class]);
     if (gFinderDiscover && [cn rangeOfString:@"Discover"].location != NSNotFound) return NO;
     if (gFinderMe && [cn rangeOfString:@"Me"].location != NSNotFound) return NO;
-    return NO;   // 这个 selector 本身就是「是不是视频号入口」，一律 NO
+    // 子开关都关时必须回到微信原逻辑：原来这里直接 return NO，
+    // 于是「发现页」「我页」两个子开关关着也照样隐藏视频号入口，等于装饰。
+    IMP o = DTOrigFor(object_getClass(self), _cmd);
+    return o ? ((BOOL (*)(id, SEL))o)(self, _cmd) : NO;
 }
 
 /// 朋友圈里的视频号卡片：在数据项层面判类型，返回 YES 表示要拦。

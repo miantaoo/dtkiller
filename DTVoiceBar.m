@@ -75,7 +75,8 @@ static id DTObjIvar(id obj, const char *name) {
 
 @interface DTVoiceBarView : UIView <UIGestureRecognizerDelegate>
 @property (nonatomic, weak)   UIView *bubble;
-@property (nonatomic, strong) UIView *track;
+@property (nonatomic, strong) UIView *track;    // 只当热区用，高 12pt、透明
+@property (nonatomic, strong) UIView *trackBg;  // 视觉底条，高 3pt
 @property (nonatomic, strong) UIView *fill;
 @property (nonatomic, strong) UILabel *timeLabel;
 @property (nonatomic, strong) UIButton *pauseBtn;
@@ -100,12 +101,19 @@ static id DTObjIvar(id obj, const char *name) {
         self.tag = kBarTag;
         self.clipsToBounds = NO;
 
+        // 手指点不中 3pt 的线，所以 track 自己撑到 12pt 高当热区，视觉交给 trackBg。
         _track = [[UIView alloc] initWithFrame:CGRectZero];
-        _track.backgroundColor = [UIColor colorWithWhite:0 alpha:0.10];
-        _track.layer.cornerRadius = 1.5;
-        _track.clipsToBounds = YES;
+        _track.backgroundColor = [UIColor clearColor];
+        _track.clipsToBounds = NO;
         _track.userInteractionEnabled = YES;
         [self addSubview:_track];
+
+        _trackBg = [[UIView alloc] initWithFrame:CGRectZero];
+        _trackBg.backgroundColor = [UIColor colorWithWhite:0 alpha:0.10];
+        _trackBg.layer.cornerRadius = 1.5;
+        _trackBg.clipsToBounds = YES;
+        _trackBg.userInteractionEnabled = NO;
+        [_track addSubview:_trackBg];
 
         _fill = [[UIView alloc] initWithFrame:CGRectZero];
         _fill.backgroundColor = [UIColor colorWithRed:0.10 green:0.78 blue:0.38 alpha:1.0];
@@ -155,8 +163,12 @@ static id DTObjIvar(id obj, const char *name) {
     CGFloat trackW = self.bounds.size.width - labelW - btnW - gap * 2;
     if (trackW < 24) { trackW = self.bounds.size.width; labelW = 0; btnW = 0; }
 
-    _track.frame = CGRectMake(0, (self.bounds.size.height - h) / 2.0, trackW, h);
-    _fill.frame  = CGRectMake(0, 0, _fill.frame.size.width > trackW ? trackW : _fill.frame.size.width, h);
+    CGFloat hitH = 12.0;                       // 热区
+    CGFloat top  = (self.bounds.size.height - hitH) / 2.0;
+    CGFloat y    = (hitH - h) / 2.0;           // 视觉条在热区里居中
+    _track.frame   = CGRectMake(0, top, trackW, hitH);
+    _trackBg.frame = CGRectMake(0, y, trackW, h);
+    _fill.frame    = CGRectMake(0, y, _fill.frame.size.width > trackW ? trackW : _fill.frame.size.width, h);
     _timeLabel.frame = CGRectMake(CGRectGetMaxX(_track.frame) + gap, 0, labelW, self.bounds.size.height);
     _pauseBtn.frame  = CGRectMake(CGRectGetMaxX(_timeLabel.frame) + gap, 0, btnW, self.bounds.size.height);
 }
@@ -270,6 +282,21 @@ static IMP             gPlayOrig = NULL;
 static IMP             gPauseOrig= NULL;
 static IMP             gAvPlayOrig = NULL;
 static CADisplayLink  *gLink     = nil;
+// play/pause 的原实现按「类名」分开存：gPlayOrig 只对探测到的那一个类有效，
+// 一旦 gPlayer 被 AVAudioPlayer 兜底改写，用微信播放器的 IMP 去调 AVAudioPlayer 就是野指针。
+static NSMutableDictionary<NSString *, NSValue *> *gPlayMap  = nil;
+static NSMutableDictionary<NSString *, NSValue *> *gPauseMap = nil;
+
+static IMP DTOrigForPlayer(id p, BOOL isPlay) {
+    if (!p) return isPlay ? gPlayOrig : gPauseOrig;
+    Class c = [p class];
+    while (c) {
+        NSValue *v = (isPlay ? gPlayMap : gPauseMap)[NSStringFromClass(c)];
+        if (v) return [v pointerValue];
+        c = class_getSuperclass(c);
+    }
+    return isPlay ? gPlayOrig : gPauseOrig;
+}
 static __weak DTVoiceBarView *gBar = nil;
 
 /// 把 CADisplayLink 的强引用断掉，避免和 block 形成环
@@ -485,11 +512,13 @@ void DTVoiceTogglePause(void) {
     id p = gPlayer;
     if (!p) return;
     if (DTIsPlaying(p)) {
-        if (gPauseOrig) ((void (*)(id, SEL))gPauseOrig)(p, sel_registerName("pause"));
+        IMP po = DTOrigForPlayer(p, NO);
+        if (po) ((void (*)(id, SEL))po)(p, sel_registerName("pause"));
         [gBar setPausedUI:YES];
         gLink.paused = YES;
     } else {
-        if (gPlayOrig) ((BOOL (*)(id, SEL))gPlayOrig)(p, sel_registerName("play"));
+        IMP po = DTOrigForPlayer(p, YES);
+        if (po) ((BOOL (*)(id, SEL))po)(p, sel_registerName("play"));
         [gBar setPausedUI:NO];
         gLink.paused = NO;
         DTVoiceApplyRate();
@@ -585,6 +614,10 @@ void DTModuleVoiceBarInstall(void) {
                 DTVoiceApplyRate();
                 return r;
             }));
+            if (gPlayOrig) {
+                if (!gPlayMap) gPlayMap = [NSMutableDictionary dictionary];
+                gPlayMap[NSStringFromClass(pc)] = [NSValue valueWithPointer:gPlayOrig];
+            }
             DTLog(@"voicebar: hooked -play on %@ (orig=%p)", NSStringFromClass(pc), gPlayOrig);
         } else {
             DTLog(@"voicebar: -play missing or has args, skip (%@)", NSStringFromClass(pc));
@@ -597,6 +630,10 @@ void DTModuleVoiceBarInstall(void) {
                 if (gPauseOrig) ((void (*)(id, SEL))gPauseOrig)(self, pauseSel);
                 [gBar setPausedUI:YES];
             }));
+            if (gPauseOrig) {
+                if (!gPauseMap) gPauseMap = [NSMutableDictionary dictionary];
+                gPauseMap[NSStringFromClass(pc)] = [NSValue valueWithPointer:gPauseOrig];
+            }
         }
 
         // 停止时把进度条清空

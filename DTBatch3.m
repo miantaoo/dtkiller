@@ -196,6 +196,12 @@ static void DTRedScheduleOpen(id mgr, id wrap)
 
     if ([gRedSeen containsObject:msgId]) return;
     [gRedSeen addObject:msgId];
+    // 只增不减会一直吃内存；超过上限就整体清空（老红包本来也已经领不到了）。
+    if (gRedSeen.count > 800) {
+        [gRedSeen removeAllObjects];
+        [gRedState removeAllObjects];
+        [gRedSeen addObject:msgId];
+    }
     gRedState[msgId] = @"seen";
 
     double span = gRedMax - gRedMin;

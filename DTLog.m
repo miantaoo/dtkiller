@@ -85,8 +85,10 @@ void DTLogWrite(const char *file, int line, NSString *fmt, ...) {
         }
     }
 
-    // 同时进系统日志，方便 idevicesyslog
-    NSLog(@"[DT] %@", msg);
+    // 系统日志只在开着详细日志时写：NSLog 会同步到 syslog，每条几十微秒，
+    // 在消息回调这种热路径上按千条算就是肉眼可见的卡顿。
+    // 文件写入保持同步 —— 崩溃前最后几行正是要看的东西，异步会丢。
+    if (DTBool(@"DTLogVerbose", NO)) NSLog(@"[DT] %@", msg);
     pthread_mutex_unlock(&gLogLock);
 }
 
