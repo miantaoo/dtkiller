@@ -5,6 +5,11 @@
 
 ---
 
+## 0.2.3 — 2026-11-20
+
+- 修 control 的 CRLF 行尾（CI 打包失败）；constructor 改为主队列延时，dyld 阶段零副作用
+- （待补充）
+
 ## 0.2.2 — 2026-11-20
 
 - constructor 移到主队列：dyld 阶段零副作用（修 EXC_BAD_ACCESS at 0x90）
