@@ -6,16 +6,14 @@
 //  - constructor 阶段**什么都不做**，只排一个主队列延时任务。dyld 还在跑微信自己的
 //    initializer 时去碰 objc runtime，会和微信后台线程抢同一张类表，崩在微信侧。
 //
-//  - 主队列 0.6 秒后进 DTBoot：读 boot.state、写 running、等 didFinishLaunching。
+//  - 主队列 0.6 秒后进 DTBoot：记录前次 boot.stage，写入 running，监听 launch 通知；
+//    若通知已发出则检查 UIApplication 状态，另设 6 秒兜底，三路都由 gScheduled 去重。
 //
-//  - didFinishLaunching 之后才装：先反检测三件（Guard / Revoke / CallKit），
-//    再按 0.35 秒一批装 UI 模块。每个模块单独 @try，一个抛异常不影响其它。
+//  - 首次安装 DTModulesEnabled 默认 NO：只装微信设置页入口，不装功能 hook。
+//    用户确认冷启动稳定后手动打开总闸并重启；此后功能模块分批安装。
 //
-//  - 崩溃自愈：全部装完才把 boot.state 写成 ok。
-//    下次启动若读到 running，说明上次没走到最后，自动进安全模式（只装设置页 +
-//    诊断导出），保证永远能进微信、能进设置页把日志导出来。
-//    想手动退出安全模式：删掉 微信/Documents/DTKiller/boot.state 即可。
-//
+//  - 每个模块写入 enter/done 阶段；只有残留 enter:* 或持久 safe 状态时，下次进入安全模式，
+//    只装设置入口和诊断。正常上滑关闭留下的 running + boot-started 不视为崩溃。
 
 #import <Foundation/Foundation.h>
 #import "DTBuild.h"
@@ -29,6 +27,7 @@
 static BOOL gScheduled = NO;
 static BOOL gBooted = NO;
 static BOOL gSafeMode = NO;
+static NSString *gPrevStage = nil;
 
 #pragma mark - 启动状态
 
@@ -40,6 +39,26 @@ static NSString *DTStatePath(void) {
                                                attributes:nil
                                                     error:NULL];
     return [dir stringByAppendingPathComponent:@"boot.state"];
+}
+
+static NSString *DTStagePath(void) {
+    return [[DTStatePath() stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"boot.stage"];
+}
+
+static void DTWriteStage(NSString *stage) {
+    [stage writeToFile:DTStagePath() atomically:YES encoding:NSUTF8StringEncoding error:NULL];
+}
+
+static NSString *DTUIStagePath(void) {
+    return [[DTStatePath() stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"ui.stage"];
+}
+
+static void DTWriteUIStage(NSString *stage) {
+    [stage writeToFile:DTUIStagePath() atomically:YES encoding:NSUTF8StringEncoding error:NULL];
+}
+
+void DTCoreRecordUIStage(NSString *stage) {
+    DTWriteUIStage(stage ?: @"unknown");
 }
 
 static NSString *DTReadState(void) {
@@ -56,10 +75,13 @@ static void DTWriteState(NSString *s) {
 
 /// 包一层 @try：模块内部抛 NSException 只丢这一个模块，不牵连整条启动链
 static void DTRun(const char *name, void (*fn)(void)) {
+    DTWriteStage([NSString stringWithFormat:@"enter:%s", name ?: "?"]);
     @try {
         fn();
         DTLog(@"core: %s ok", name);
+        DTWriteStage([NSString stringWithFormat:@"done:%s", name ?: "?"]);
     } @catch (NSException *e) {
+        DTWriteStage([NSString stringWithFormat:@"exception:%s:%@", name ?: "?", e.name ?: @"?"]);
         DTLog(@"core: %s THREW %@ — %@", name, e.name, e.reason);
     }
 }
@@ -108,19 +130,25 @@ static void DTInstallUI(void) {
     gScheduled = YES;
 
     if (gSafeMode) {
-        DTLog(@"core: SAFE MODE —— 上次启动没走完，这次只装设置页与诊断导出");
-        DTRun("settings", DTModuleSettingsInstall);
-        DTWriteState(@"ok");
-        DTLog(@"core: safe mode ready（删掉 Documents/DTKiller/boot.state 可退出安全模式）");
+        DTWriteStage(@"safe-mode-settings");
+        DTLog(@"core: SAFE MODE — previous stage=%@; only settings and diagnostics will load",
+              gPrevStage ?: @"unknown");
+        DTRun(@"settings", DTModuleSettingsInstall);
+        DTWriteState(@"safe");
+        DTWriteStage(@"safe-mode-ready");
+        DTLog(@"core: safe mode remains active; use Debug → 下次启动退出安全模式 to leave it");
         return;
     }
 
-    @autoreleasepool {
-        @try {
-            DTMigrateFromLegacyIfNeeded();
-        } @catch (NSException *e) {
-            DTLog(@"core: migrate THREW %@", e.name);
-        }
+    // 首次安装默认先提供设置入口与诊断包，不加载功能 hook。
+    // 用户确认微信能正常启动后，再显式开启「功能模块总开关」并重启。
+    if (!DTBool(@"DTModulesEnabled", NO)) {
+        DTWriteStage(@"diagnostic-only-settings");
+        DTRun(@"settings", DTModuleSettingsInstall);
+        DTWriteState(@"ok");
+        DTWriteStage(@"diagnostic-only-ready");
+        DTLog(@"core: functional modules are disabled; settings entry is available");
+        return;
     }
 
     // 反检测与消息相关：先装。晚于 didFinishLaunching 会少挡几次启动期检测，
@@ -148,34 +176,67 @@ static void DTBoot(void) {
     if (gBooted) return;
     gBooted = YES;
 
-    NSString *prev = DTReadState();
-    gSafeMode = [prev isEqualToString:@"running"];
+    @autoreleasepool {
+        @try {
+            DTMigrateFromLegacyIfNeeded();
+        } @catch (NSException *e) {
+            DTLog(@"core: migrate THREW %@", e.name);
+        }
+    }
 
-    DTLog(@"core: injected v%@ into %@ %@ (prevState=%@%@)",
+    NSString *prev = DTReadState();
+    gPrevStage = [NSString stringWithContentsOfFile:DTStagePath()
+                                                   encoding:NSUTF8StringEncoding
+                                                      error:NULL];
+    BOOL leaveSafeMode = DTBool(@"DTSafeModeNextBoot", NO);
+    if (leaveSafeMode) {
+        DTSetBool(@"DTSafeModeNextBoot", NO);
+        DTFlush();
+        DTWriteState(@"ok");
+        DTWriteStage(@"safe-mode-exit-requested");
+    }
+    BOOL stageWasIncomplete = [gPrevStage hasPrefix:@"enter:"];
+    gSafeMode = !leaveSafeMode &&
+        ([prev isEqualToString:@"safe"] || stageWasIncomplete);
+
+    DTLog(@"core: injected v%@ into %@ %@ (prevState=%@, prevStage=%@%@)",
           DT_DYLIB_VERSION,
           [[NSBundle mainBundle] bundleIdentifier],
           [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
           prev ?: @"nil",
+          gPrevStage ?: @"none",
           gSafeMode ? @", SAFE MODE" : @"");
 
     if (!gSafeMode) {
         DTWriteState(@"running");
+        DTWriteStage(@"boot-started");
     }
 
+    void (^scheduleInstall)(NSString *) = ^(NSString *reason) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            DTLog(@"core: UI install trigger=%@", reason);
+            DTInstallUI();
+        });
+    };
     [[NSNotificationCenter defaultCenter]
         addObserverForName:UIApplicationDidFinishLaunchingNotification
                     object:nil
                      queue:[NSOperationQueue mainQueue]
                 usingBlock:^(NSNotification *note) {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{
-            DTInstallUI();
-        });
+        scheduleInstall(@"didFinishLaunching");
     }];
 
-    // 兜底：拿不到 didFinishLaunching 时（后台拉起 / 通知已被发过）
+    // DTBoot 由主队列延时任务触发；若通知早已发出，直接依据应用状态补装。
+    UIApplication *app = [UIApplication sharedApplication];
+    if (app.applicationState == UIApplicationStateActive || app.keyWindow != nil) {
+        scheduleInstall(@"already-launched");
+    }
+
+    // 兜底：后台拉起、窗口建立较晚或通知路径未执行。
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(6.0 * NSEC_PER_SEC)),
                    dispatch_get_main_queue(), ^{
+        DTLog(@"core: UI install trigger=fallback");
         DTInstallUI();
     });
 }

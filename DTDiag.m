@@ -32,6 +32,17 @@ NSString *DTDiagText(void) {
     // 沙盒与日志路径 —— 反馈问题时一眼能看出装在哪个位置
     [s appendFormat:@"Documents  : %@\n", NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject];
     [s appendFormat:@"日志文件   : %@\n", DTLogCurrentPath()];
+    NSString *diagDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject
+                         stringByAppendingPathComponent:@"DTKiller"];
+    NSString *bootState = [NSString stringWithContentsOfFile:[diagDir stringByAppendingPathComponent:@"boot.state"]
+                                                    encoding:NSUTF8StringEncoding error:NULL] ?: @"(missing)";
+    NSString *bootStage = [NSString stringWithContentsOfFile:[diagDir stringByAppendingPathComponent:@"boot.stage"]
+                                                    encoding:NSUTF8StringEncoding error:NULL] ?: @"(missing)";
+    [s appendFormat:@"启动状态   : %@\n最后阶段   : %@\n", bootState, bootStage];
+
+    NSString *uiStage = [NSString stringWithContentsOfFile:[diagDir stringByAppendingPathComponent:@"ui.stage"]
+                                                  encoding:NSUTF8StringEncoding error:NULL] ?: @"(missing)";
+    [s appendFormat:@"设置页阶段 : %@\\n", uiStage];
 
     NSDictionary *attrs = [[NSFileManager defaultManager] attributesOfItemAtPath:DTLogCurrentPath() error:NULL];
     if (attrs) {

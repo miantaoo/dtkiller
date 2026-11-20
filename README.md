@@ -12,14 +12,14 @@
 
 ```
 out/dt/
-├── DTCore.m            入口：constructor 先装反检测，didFinishLaunching 后装 UI 模块
+├── DTCore.m            入口：安全启动门闩、持久阶段诊断，模块分批安装
 ├── DTHook.h/.m         零依赖 hook（method_setImplementation / class_addMethod）
 ├── DTConfig.h/.m       配置读写（com.dt.killer 域，启动时从旧插件域迁移）
 ├── DTClassFinder.h/.m  按 selector 反查宿主类（应对类名加密/动态注册）
 ├── DTLog.h/.m          日志 + 导出（Documents/DTKiller/app.log，2MB 滚动）
 ├── DTUtil.h/.m         手势 proxy / 视图树遍历 / ivar 安全读写
 ├── DTGuard.m           反检测 + 选择性上报屏蔽
-├── DTVoiceBar.m        QQ 风格语音进度条（3pt 底部进度线 + 倍速 + 拖动预览）
+├── DTVoiceBar.m        QQ 风格语音进度条（3pt 视觉线 / 12pt 手势热区 + 倍速 + 拖动预览）
 ├── DTVoiceFwd.m        语音转发（长按菜单 + 原生通道优先）
 ├── DTSilk.m            音乐/视频 → 语音
 ├── DTSilkCodec.h/.m    SILK v3 编解码封装（可选 vendor/silk）
@@ -76,6 +76,7 @@ python tools/selfcheck.py out/dt   # 括号 / @end 配对 / #import 存在性
 python tools/lint.py    out/dt     # 未定义函数 / 全局变量 / 可见性（抓链接期 undefined）
 python tools/precheck.py out/dt    # C 函数参数个数 / @interface 未实现 / @selector 不存在
 python tools/ordercheck.py out/dt  # static 全局变量先用后声明（三个脚本都抓不到的那类编译错误）
+bash tools/run_dt_checks.sh        # 上述四项的统一入口
 ```
 
 ---
@@ -85,7 +86,7 @@ python tools/ordercheck.py out/dt  # static 全局变量先用后声明（三个
 详细步骤、签名链、失败排查见 **[注入与反检测.md](注入与反检测.md)**。要点：
 
 1. iPhone 12+ / iOS 16.x / TrollStore + TrollFools
-2. 微信 **8.0.50**（8.0.60+ 加强了 `checkHookWithSeq:`）
+2. 微信 **8.0.56**（当前测试基准；内部 selector 仍按运行时检查，缺失则跳过并记日志）
 3. TrollFools → 微信 → 注入 `DTKiller.dylib` → 冷启
 4. 日志：微信沙盒 `Documents/DTKiller/app.log`
 
@@ -99,22 +100,23 @@ python tools/ordercheck.py out/dt  # static 全局变量先用后声明（三个
 配置落在 **`com.dt.killer`** 独立域，避免和 HB / Misaka / MiYou / WCPure 抢同一个 key。
 首次启动会从旧域 `com.tencent.xin` 一次性迁移旧键（`MIsVoiceProgressKey → DTVoiceBarEnable`、
 `mIsForwardVoice → DTVoiceFwdEnable`、`editMoney → DTBalanceEnable`、`theGroupHeadImageBOOL → DTGroupAvatarEnable`、
-`editTimeLinePhoneText → DTMomentsTailPhone`、`editTimeLineComputerText → DTMomentsTailPC`）。
+`editTimeLinePhoneText → DTMomentsTailPhone`）。电脑端尾巴映射未接入本版，旧键会保留在原域而不参与显示。
 
-**入口**：「我」页面右上角齿轮 → DTKiller 设置页。
+**入口**：微信「我 → 设置」→「DTKiller 设置」；不创建全局悬浮按钮。优先插入独立 section/cell；若微信表格 API 不匹配，则在同一个设置页导航栏添加 `DTKiller` 备用按钮。入口按每个设置控制器独立持有 target，并防止刷新重入。
 
-设置页分 5 组，共 94 个开关 / 数值 / 列表项：
+设置页包含约 100 个可配置 / 操作项（另有小节说明行）：
 
 | 组 | 内容 |
 |---|---|
-| 净化 | 一键全净 + 13 个入口 + 广告 4 项 + 发现页 3 项 + Safari + 自动下载 9 项 |
-| 语音 | 进度条 4 项 / 转发 / 左滑引用 / 音频转语音 3 项 / CallKit 3 项 |
-| 钱包 | 零钱加成 2 项 / 抢红包 4 项 / 收款回复 3 项 / 记账本汇总 |
-| 增强 | 头像圆角 4 项 / 气泡 3 项 / 朋友圈尾巴 2 项 / 群头像 / 图上限 2 项 / 红点 / 群折叠 2 项 / 退群 / 拍一拍 2 项 / 虚拟步数 7 项 |
-| 调试 | 反检测 5 项 / 防撤回 2 项 / 自动登录 2 项 / @全体 2 项 / 日志 / 配置导入导出 |
+| 净化 | 全局入口净化 + 13 个子项、广告、发现页、Safari、自动下载策略 |
+| 语音 | 进度条、转发、引用、音频转换、CallKit |
+| 钱包 | 零钱显示、抢红包范围、收款回复白名单、本地记账 |
+| 增强 | 头像圆角、气泡、朋友圈、群头像、列表、步数 |
+| 调试 | 模块总闸、安全模式恢复、兼容项、防撤回、自动登录、日志与诊断 |
 
-**缺省值**：只有反检测三项（`DTGuardEnable`、`DTBlockHookCheck`、`DTBlockFileConsistency`）默认开，
-其余全部默认关 —— 装上不会自动触发抢红包、自动下载这类有副作用的行为。
+**缺省值**：`DTModulesEnabled` 默认关闭，首次安装只挂设置入口与诊断能力；各功能开关默认关闭。反检测兼容项也默认关闭。总闸关闭期间，分类设置可以编辑和保存，但不会加载功能 hook；先在「调试」打开总闸并重启，再逐项测试。
+
+**启动恢复**：`boot.stage` 记录模块安装阶段，`ui.stage` 单独记录设置页刷新；正常上滑关闭留下的 `running + boot-started` 不会单独触发安全模式。若 UI 入口失效，先用 TrollFools 停用/eject 插件恢复微信，不要仅删除 `boot.state` 后继续启动已开启的模块。
 
 改完开关**必须重启微信**：hook 在启动时一次性装好，hook 体内部才去读配置。
 
@@ -126,7 +128,7 @@ python tools/ordercheck.py out/dt  # static 全局变量先用后声明（三个
 
 | 模块 | 状态 | 说明 |
 |---|---|---|
-| 语音进度条 | ✅ 可跑 | 视图自绘；播放器按 8.0.54 类名优先探（`SilkAudioPlayer(V2)` 等）+ 能力扫描 + `AVAudioPlayer` 兜底；进度走 `getCurrentTimeMs` 毫秒，总时长取自 `CMessageWrap.m_uiVoiceTime`；12fps `CADisplayLink` |
+| 语音进度条 | ✅ 需真机校准 | 视图自绘；播放器优先探测 8.0.56 已知类名（`SilkAudioPlayer(V2)` 等）+ 能力扫描 + `AVAudioPlayer` 兜底；进度走 `getCurrentTimeMs` 毫秒，总时长取自 `CMessageWrap.m_uiVoiceTime`；12fps `CADisplayLink` |
 | 左滑引用 | ✅ 可跑 | vc → 视图树 → 工具栏三层找 `referingMessageWrap` 宿主，多路 refresh |
 | 语音转发 | ⚠️ 需真机校准 | 语音数据优先读 `CMessageWrap.m_dtVoice`，其次路径字段，最后在 `Documents` 下递归找 `.aud`；优先原生 `ForwardMsg:ToContact:Scene:`，退回重发 |
 | 零钱加成 | ✅ 可跑 | 只改 `font >= 18` 且匹配金额的 UILabel，每次 `viewDidAppear` 重打 |
@@ -134,7 +136,7 @@ python tools/ordercheck.py out/dt  # static 全局变量先用后声明（三个
 | 朋友圈尾巴 | ✅ 可跑 | 数据层 getter + cell label 片段替换（保留「2小时前」前缀） |
 | 反检测 | ✅ 可跑 | `ClientCheckMgr` 全链路 no-op + `JailBreakHelper` 返回 NO + bundleId 伪造 |
 | 音乐转语音 | ⚠️ 需 vendor/silk | 解码/编码/落盘/发送全通；SILK SDK 需自己放进 `vendor/silk`（Makefile 已自动识别） |
-| 防撤回 | ✅ 可跑 | hook `onRevokeMsg:`（`onRevokeMsg:` / `OnRevokeMsg:` 两种大小写都试）+ 全类 `*Revoke*` 空实现兜底；构造函数里就装，早于第一条消息 |
+| 防撤回 | ⚠️ 需真机校准 | 总闸开启后在启动批次安装；hook `onRevokeMsg:` / `OnRevokeMsg:` 并探测其它候选；构造阶段不触碰微信类表 |
 | CallKit | ⚠️ 需真机校准 | 8 个 selector 按 WeCallKit 还原结果打；`reportNewIncomingCall` 失败会自动降级成「本地通知 + 震动」；answer/end 要转发回 `MMVoIPService`，selector 名随版本变，见校准清单 |
 | 头像圆角 | ✅ 可跑 | 离屏重绘 + LRU 200；`DTIconRadiusLayerMode` 可切 layer 模式 |
 | 自动确认登录 | ⚠️ 需真机校准 | 只点标题含「登录」的按钮；异常/风险页跳过 |
@@ -154,7 +156,7 @@ python tools/ordercheck.py out/dt  # static 全局变量先用后声明（三个
 | 红点消除 | ✅ 可跑 | 只隐藏类名含 `Dot`/`Badge` 的控件，保留未读数 |
 | 拍一拍后缀 | ⚠️ 需真机校准 | 文案拼接，接收端显示未验证 |
 | 退群通知 | ⚠️ 需真机校准 | 事件存在性待验证，拿不到身份就只说「群成员有变动」 |
-| 设置页 | ✅ 可跑 | 「我」页右上角齿轮进入；5 组 94 项，改完重启生效 |
+| 设置页 | ⚠️ 需真机验证 | 微信「我→设置」独立入口；table manager 失败时同页导航栏备用按钮；每 host 独立 target、刷新防重入；诊断包含 `boot.stage`/`ui.stage` |
 
 ### SILK 编码器（可选依赖）
 
@@ -182,7 +184,7 @@ WCPure / WeCallKit 这批插件的类名是**加密**的（`__objc_classname` �
 而且微信自己会 `objc_allocateClassPair` 动态注册类。所以本工程不写死任何微信内部类名：
 
 - `DTClassesForSelector("onRevokeMsg:")` → 所有实现该 selector 的类
-- `DTWeChatClassNames()` → 枚举主二进制全部类（3 秒缓存）
+- `DTWeChatClassNames()` → 枚举主二进制全部类（进程内永久缓存；需要时可显式失效）
 
 代价是首次 hook 几十毫秒，换来**换微信版本不用改代码**。
 

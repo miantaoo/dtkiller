@@ -40,6 +40,7 @@ int  DTHBHookOnce(void);       // P1-14~18
 NSDictionary<NSString *, NSNumber *> *DTLedgerMonthlySummary(void);
 
 void DTModuleSettingsInstall(void);     // 设置页入口
+void DTCoreRecordUIStage(NSString *stage); // 设置页阶段单独记录，不污染启动 hook 阶段
 
 /// SILK 模块的对外入口（设置页调用）
 void DTSilkConvertFile(NSString *path, void (^done)(BOOL ok, NSString *msg));

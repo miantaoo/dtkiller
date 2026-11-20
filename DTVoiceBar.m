@@ -18,6 +18,7 @@
 #import "DTClassFinder.h"
 #import "DTLog.h"
 #import "DTModules.h"
+#import "DTUtil.h"
 
 static NSString *const kEn      = @"DTVoiceBarEnable";
 static NSString *const kShowTime= @"DTVoiceBarShowTime";
@@ -297,6 +298,7 @@ static IMP DTOrigForPlayer(id p, BOOL isPlay) {
     }
     return isPlay ? gPlayOrig : gPauseOrig;
 }
+static const void *kDTVoiceBarMessageAssoc = &kDTVoiceBarMessageAssoc;
 static __weak DTVoiceBarView *gBar = nil;
 
 /// 把 CADisplayLink 的强引用断掉，避免和 block 形成环
@@ -319,6 +321,7 @@ UIViewController *DTKeyWindowVC(void) {
 }
 
 static __weak id gPlayingMsg = nil;      // 当前在播的 CMessageWrap
+static void DTSelectBarForPlayingMessage(void);
 
 // 8.0.54 class-dump 实证：语音播放器不是 AVAudioPlayer 体系。
 //   SilkAudioPlayer   : getCurrentTimeMs / playAtTime: / setCurrentPacketWithTime: / preparePlayWithFile:sync:
@@ -425,14 +428,18 @@ static BOOL DTIsPlaying(id p) {
     return DTCurrentMs(p) > 0;
 }
 
+static void DTStopLink(void);
+
 static void DTTick(void) {
     id p = gPlayer;
+    if (!p) { DTStopLink(); return; }
     NSTimeInterval d = DTTotalMs(p);
-    if (d <= 0) return;
+    if (d <= 0) { DTStopLink(); return; }
     NSTimeInterval c = DTCurrentMs(p);
     if (c < 0) c = 0;
     if (c > d) c = d;
     [gBar updateRatio:(CGFloat)(c / d) current:c / 1000.0 total:d / 1000.0];
+    if (c >= d - 80.0) DTStopLink();
 }
 
 static void DTStartLink(void) {
@@ -449,6 +456,16 @@ static void DTStartLink(void) {
     gLink = [CADisplayLink displayLinkWithTarget:gProxy selector:@selector(fire)];
     gLink.preferredFramesPerSecond = 12;   // 足够，省电
     [gLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+}
+
+static void DTStopLink(void) {
+    if (![NSThread isMainThread]) {
+        dispatch_async(dispatch_get_main_queue(), ^{ DTStopLink(); });
+        return;
+    }
+    [gLink invalidate];
+    gLink = nil;
+    gProxy = nil;
 }
 
 void DTVoiceApplyRate(void) {
@@ -547,10 +564,34 @@ static UIView *DTCellContent(UIView *cell) {
     return cell;
 }
 
+static id DTVoiceWrapForCell(id cell) {
+    id wrap = DTObjIvar(cell, "m_msgWrap");
+    if (!wrap) wrap = DTObjIvar(cell, "m_msg");
+    return wrap;
+}
+
+static void DTSelectBarForPlayingMessage(void) {
+    id active = gPlayingMsg;
+    gBar = nil;
+    if (!active) return;
+    UIViewController *root = DTKeyWindowVC();
+    UIView *rootView = root.view;
+    if (!rootView) return;
+    __weak id expected = active;
+    __block DTVoiceBarView *found = nil;
+    DTEnumerateViews(rootView, ^BOOL(UIView *view) {
+        if (![view isKindOfClass:[DTVoiceBarView class]]) return NO;
+        id owner = objc_getAssociatedObject(view, kDTVoiceBarMessageAssoc);
+        if (owner == expected) { found = (DTVoiceBarView *)view; return YES; }
+        return NO;
+    });
+    gBar = found;
+}
+
 static void DTMountBar(UIView *cell) {
     if (!DTBool(kEn, NO)) return;
     if (!DTCellIsVoice(cell)) return;
-
+    id wrap = DTVoiceWrapForCell(cell);
 
     // 找气泡：优先高度 25~70 的矩形子视图
     __block UIView *bubble = nil;
@@ -575,19 +616,20 @@ static void DTMountBar(UIView *cell) {
     // 原来查 cell.subviews 永远查不到，语音气泡每布局一次就摞一条新进度条，滚两下就卡死。
     for (UIView *v in bubble.subviews) {
         if ([v isKindOfClass:[DTVoiceBarView class]]) {
-            gBar = (DTVoiceBarView *)v;
+            objc_setAssociatedObject(v, kDTVoiceBarMessageAssoc, wrap, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            if (wrap && wrap == gPlayingMsg) {
+                gBar = (DTVoiceBarView *)v;
+            } else if (gBar == (DTVoiceBarView *)v) {
+                gBar = nil;
+                DTSelectBarForPlayingMessage();
+            }
             return;
         }
     }
 
-    if (!gPlayingMsg) {
-        id w = DTObjIvar(cell, "m_msgWrap");
-        if (!w) w = DTObjIvar(cell, "m_msg");
-        if (w) gPlayingMsg = w;          // 兜底：没抓到播放事件时用最近一条语音消息
-    }
-
     DTVoiceBarView *bar = [[DTVoiceBarView alloc] initWithBubble:bubble];
-    gBar = bar;
+    objc_setAssociatedObject(bar, kDTVoiceBarMessageAssoc, wrap, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    if (wrap && wrap == gPlayingMsg) gBar = bar;
 }
 
 #pragma mark - 安装
@@ -610,6 +652,7 @@ void DTModuleVoiceBarInstall(void) {
                 BOOL r = YES;
                 if (gPlayOrig) r = ((BOOL (*)(id, SEL))gPlayOrig)(self, playSel);
                 [gBar setPausedUI:NO];
+                DTSelectBarForPlayingMessage();
                 DTStartLink();
                 DTVoiceApplyRate();
                 return r;
@@ -628,7 +671,10 @@ void DTModuleVoiceBarInstall(void) {
         if (qm && method_getNumberOfArguments(qm) == 2) {
             gPauseOrig = DTHookMsg(pc, pauseSel, imp_implementationWithBlock(^(id self) {
                 if (gPauseOrig) ((void (*)(id, SEL))gPauseOrig)(self, pauseSel);
-                [gBar setPausedUI:YES];
+                if (self == (id)gPlayer) {
+                    [gBar setPausedUI:YES];
+                    gLink.paused = YES;
+                }
             }));
             if (gPauseOrig) {
                 if (!gPauseMap) gPauseMap = [NSMutableDictionary dictionary];
@@ -643,8 +689,13 @@ void DTModuleVoiceBarInstall(void) {
             IMP o = DTHookMsg(pc, stopSel, imp_implementationWithBlock(^(id self) {
                 IMP prev = DTOrigFor(pc, stopSel);
                 if (prev) ((void (*)(id, SEL))prev)(self, stopSel);
-                [gBar updateRatio:0 current:0 total:0];
-                [gBar setPausedUI:NO];
+                if (self == (id)gPlayer) {
+                    DTStopLink();
+                    gPlayingMsg = nil;
+                    [gBar updateRatio:0 current:0 total:0];
+                    [gBar setPausedUI:NO];
+                    gBar = nil;
+                }
             }));
             (void)o;
         }
@@ -665,9 +716,31 @@ void DTModuleVoiceBarInstall(void) {
                 IMP pv = DTOrigFor(plc, spm);
                 if (pv) ((void (*)(id, SEL, id, BOOL))pv)(self, spm, msg, resume);
                 [gBar setPausedUI:NO];
+                DTSelectBarForPlayingMessage();
                 DTStartLink();
             }));
             hn++;
+        }
+        SEL stopMsgSel = sel_registerName("StopPlayMessage:");
+        Method stopMsgMethod = class_getInstanceMethod(plc, stopMsgSel);
+        if (stopMsgMethod && method_getNumberOfArguments(stopMsgMethod) == 3) {
+            char *stopReturn = method_copyReturnType(stopMsgMethod);
+            BOOL stopReturnsVoid = stopReturn && stopReturn[0] == 'v';
+            free(stopReturn);
+            if (stopReturnsVoid) {
+                DTHookMsg(plc, stopMsgSel, imp_implementationWithBlock(^(id self, id msg) {
+                    IMP prev = DTOrigFor(plc, stopMsgSel);
+                    if (prev) ((void (*)(id, SEL, id))prev)(self, stopMsgSel, msg);
+                    if (!msg || msg == gPlayingMsg) {
+                        gPlayingMsg = nil;
+                        DTStopLink();
+                        [gBar updateRatio:0 current:0 total:0];
+                        [gBar setPausedUI:NO];
+                        gBar = nil;
+                    }
+                }));
+                hn++;
+            }
         }
         DTLog(@"voicebar: PlayingController armed %d", hn);
     }
@@ -696,6 +769,7 @@ void DTModuleVoiceBarInstall(void) {
                 IMP pv = DTOrigFor(ar, sp1);
                 BOOL r = pv ? ((BOOL (*)(id, SEL, id))pv)(self, sp1, msg) : NO;
                 [gBar setPausedUI:NO];
+                DTSelectBarForPlayingMessage();
                 DTStartLink();
                 return r;
             }));
