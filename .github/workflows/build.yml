@@ -81,7 +81,15 @@ jobs:
         run: |
           mkdir -p artifacts
           cp -v packages/*.deb artifacts/ 2>/dev/null || true
-          find .theos -name "DTKiller.dylib" -exec cp -v {} artifacts/ \; 2>/dev/null || true
+          # 注意：dSYM 目录里也有一个叫 DTKiller.dylib 的调试符号文件（Mach-O type 10），
+          # find 会把两个同名文件拷进 artifacts/，后者覆盖前者 —— 上次就是这样把 dSYM
+          # 当成品发出去的，TrollFools 签名时报 "ldid: Unsupported Mach-O type"。
+          DL=$(find .theos -name "DTKiller.dylib" -not -path "*dSYM*" | head -1)
+          if [ -n "$DL" ]; then cp -v "$DL" artifacts/; else echo "!! 没找到真正的 dylib"; fi
+          for f in artifacts/*.dylib; do
+            [ -e "$f" ] || continue
+            printf "%s 文件头: " "$f"; od -An -tx1 -N8 "$f"
+          done
           ls -l artifacts || true
 
       - uses: actions/upload-artifact@v4
