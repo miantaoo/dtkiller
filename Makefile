@@ -5,6 +5,16 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME := DTKiller
 
+# ---------------------------------------------------------------------------
+# 版本号唯一来源：out/dt/VERSION（一行，例如 0.2.0）
+#
+# 在这里生成 DTVersion.h，供 DTBuild.h 导入；control 的 Version 行在
+# before-package 阶段同步。改版本 = 只改 VERSION 一个文件。
+# ---------------------------------------------------------------------------
+DT_VERSION := $(shell cat VERSION 2>/dev/null || echo 0.0.0-dev)
+$(info [DTKiller] version: $(DT_VERSION))
+$(shell printf '#define DT_BUILD_VERSION "%s"\n' '$(DT_VERSION)' > DTVersion.h)
+
 DTKiller_FILES := $(wildcard *.m)
 DTKiller_CFLAGS := -fobjc-arc -O2 -fvisibility=hidden \
                    -Wno-unused-function -Wno-unused-variable -Wno-deprecated-declarations \
@@ -37,6 +47,11 @@ $(info [DTKiller] vendor/silk 不存在 —— SILK 编码功能将编译为空�
 endif
 
 include $(THEOS_MAKE_PATH)/tweak.mk
+
+# control 的 Version 行跟随 VERSION，避免两处打架
+before-package::
+	@sed -i.bak 's/^Version:.*/Version: $(DT_VERSION)/' control && rm -f control.bak
+	@echo "[DTKiller] control Version -> $(DT_VERSION)"
 
 after-install::
 	install.exec "killall -9 WeChat || true"

@@ -10,6 +10,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "DTBuild.h"
 #import <UIKit/UIKit.h>
 #import "DTHook.h"
 #import "DTConfig.h"
@@ -86,7 +87,7 @@ static void DTCoreInit(void) {
         DTLog(@"core: injected into %@ v%@ (dylib %@)",
               [[NSBundle mainBundle] bundleIdentifier],
               [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
-              @"0.1.1");
+              DT_DYLIB_VERSION);
 
         // 1) 反检测：立刻装，越早越好
         DTModuleGuardInstall();

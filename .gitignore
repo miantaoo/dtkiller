@@ -11,6 +11,9 @@ layout/DEBIAN/
 *.deb
 *.log
 
+# 由 Makefile 从 VERSION 生成，不进仓库
+DTVersion.h
+
 # 可选的 SILK SDK（由 CI 自动拉，不建议提交）
 vendor/silk/
 

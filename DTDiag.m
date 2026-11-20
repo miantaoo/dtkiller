@@ -5,8 +5,7 @@
 #import "DTDiag.h"
 #import "DTConfig.h"
 #import "DTLog.h"
-
-#define DT_DYLIB_VERSION @"0.1.1"
+#import "DTBuild.h"
 
 static NSString *DTDiagTimestamp(void) {
     NSDateFormatter *f = [NSDateFormatter new];

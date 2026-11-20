@@ -3,11 +3,18 @@
 把 10 个第三方插件里你**实际在用**的功能，用一个 <500KB 的 dylib 重做。
 不依赖 CydiaSubstrate，全部走 ObjC runtime，TrollFools 注入已装微信即可用。
 
+> **版本号规则**：唯一来源是 `out/dt/VERSION`（一行，如 `0.2.0`）。改它就等于升版本——
+> Makefile 生成 `DTVersion.h` 供 `DTBuild.h` 引入，`control` 的 `Version` 在打包前同步，
+> deb 包名与产物文件名全部跟着走。升版本一条命令：
+> `python tools/bump_version.py 0.2.1 "这次改了什么"`。
+> 产物统一命名 `DTKiller-<版本>-<架构>.dylib`，旧版本文件不覆盖，出问题能回退。
+> 任何 `.m` / `.h` 里都不许硬编码版本号。
+
 ```
 out/dt/
 ├── DTCore.m            入口：constructor 先装反检测，didFinishLaunching 后装 UI 模块
 ├── DTHook.h/.m         零依赖 hook（method_setImplementation / class_addMethod）
-├── DTConfig.h/.m       配置读写（落在 com.tencent.xin 域，可直接吃旧插件配置）
+├── DTConfig.h/.m       配置读写（com.dt.killer 域，启动时从旧插件域迁移）
 ├── DTClassFinder.h/.m  按 selector 反查宿主类（应对类名加密/动态注册）
 ├── DTLog.h/.m          日志 + 导出（Documents/DTKiller/app.log，2MB 滚动）
 ├── DTUtil.h/.m         手势 proxy / 视图树遍历 / ivar 安全读写
