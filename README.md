@@ -128,7 +128,7 @@ bash tools/run_dt_checks.sh        # 上述四项的统一入口
 
 | 模块 | 状态 | 说明 |
 |---|---|---|
-| 语音进度条 | ✅ 需真机校准 | 视图自绘；播放器优先探测 8.0.56 已知类名（`SilkAudioPlayer(V2)` 等）+ 能力扫描 + `AVAudioPlayer` 兜底；进度走 `getCurrentTimeMs` 毫秒，总时长取自 `CMessageWrap.m_uiVoiceTime`；12fps `CADisplayLink` |
+| 语音进度条 | ✅ 需真机校准 | 视图自绘；播放器候选名来自 8.0.54 class-dump，运行时再按 selector/能力筛选，8.0.56 实际类名需看诊断日志；进度走 `getCurrentTimeMs` 毫秒，总时长取自 `CMessageWrap.m_uiVoiceTime`；12fps `CADisplayLink`，停止或结束会 invalidate |
 | 左滑引用 | ✅ 可跑 | vc → 视图树 → 工具栏三层找 `referingMessageWrap` 宿主，多路 refresh |
 | 语音转发 | ⚠️ 需真机校准 | 语音数据优先读 `CMessageWrap.m_dtVoice`，其次路径字段，最后在 `Documents` 下递归找 `.aud`；优先原生 `ForwardMsg:ToContact:Scene:`，退回重发 |
 | 零钱加成 | ✅ 可跑 | 只改 `font >= 18` 且匹配金额的 UILabel，每次 `viewDidAppear` 重打 |

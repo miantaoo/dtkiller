@@ -133,7 +133,7 @@ static void DTInstallUI(void) {
         DTWriteStage(@"safe-mode-settings");
         DTLog(@"core: SAFE MODE — previous stage=%@; only settings and diagnostics will load",
               gPrevStage ?: @"unknown");
-        DTRun(@"settings", DTModuleSettingsInstall);
+        DTRun("settings", DTModuleSettingsInstall);
         DTWriteState(@"safe");
         DTWriteStage(@"safe-mode-ready");
         DTLog(@"core: safe mode remains active; use Debug → 下次启动退出安全模式 to leave it");
@@ -144,7 +144,7 @@ static void DTInstallUI(void) {
     // 用户确认微信能正常启动后，再显式开启「功能模块总开关」并重启。
     if (!DTBool(@"DTModulesEnabled", NO)) {
         DTWriteStage(@"diagnostic-only-settings");
-        DTRun(@"settings", DTModuleSettingsInstall);
+        DTRun("settings", DTModuleSettingsInstall);
         DTWriteState(@"ok");
         DTWriteStage(@"diagnostic-only-ready");
         DTLog(@"core: functional modules are disabled; settings entry is available");
