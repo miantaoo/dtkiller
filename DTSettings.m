@@ -300,9 +300,9 @@ static void DTReload(UIViewController *host) {
            num(@"  自然抖动", @"0.08 = ±8%", @"DTStepJitter") ],
 
         // 5. 调试
-        @[ sw(@"反检测", @"checkHook / 越狱检测返回 NO", @"DTGuardEnable", YES),
-           sw(@"  屏蔽 hook 校验", @"checkHook:/checkConsistency:", @"DTBlockHookCheck", YES),
-           sw(@"  屏蔽文件校验上报", @"reportFileConsistency:", @"DTBlockFileConsistency", YES),
+        @[ sw(@"反检测", @"checkHook / 越狱检测返回 NO（默认关，确认能启动再打开）", @"DTGuardEnable", NO),
+           sw(@"  屏蔽 hook 校验", @"checkHook:/checkConsistency:", @"DTBlockHookCheck", NO),
+           sw(@"  屏蔽文件校验上报", @"reportFileConsistency:", @"DTBlockFileConsistency", NO),
            sw(@"  屏蔽上报（旧键）", @"等同上一项，老配置仍生效", @"DTGuardBlockReport", NO),
            sw(@"  伪造 bundleId", @"Auth/WWK 类返回 com.tencent.xin", @"DTSpoofBundleID", NO),
            sw(@"防撤回", @"对方撤回后消息还在", @"DTRevokeEnable", NO),

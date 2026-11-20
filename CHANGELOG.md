@@ -5,6 +5,34 @@
 
 ---
 
+## 0.2.2 — 2026-11-20
+
+- constructor 移到主队列：dyld 阶段零副作用（修 EXC_BAD_ACCESS at 0x90）
+- （待补充）
+
+## 0.2.1 — 2026-11-20
+
+修「注入后微信起不来」。这一版的目标只有一个：**保证一定能启动**，功能默认全关。
+
+- 重写 `DTCore.m` 的启动时序：constructor 阶段不再装任何 hook，只写
+  `Documents/DTKiller/boot.state`、注册 `UIApplicationDidFinishLaunchingNotification`。
+  所有模块改到 `didFinishLaunching` + 1.2 秒之后安装（反检测三件在前，UI 六批在后，
+  每批间隔 0.35 秒）。0.2.0 及以前在 constructor 里就替换检测方法的 IMP，一旦某个
+  替换实现不对，微信会崩在启动阶段，用户连界面都看不到，也无从判断是哪个模块。
+- 每个模块用 `DTRun(name, fn)` 包 `@try/@catch`：一个模块抛异常只丢这一个，不牵连
+  整条启动链。
+- 崩溃自愈：全部装完才把 `boot.state` 写成 `ok`。下次启动若读到 `running`，说明上次
+  没走到最后，自动进**安全模式**——只装设置页与诊断导出，用户永远能进微信、能进设置
+  页把日志导出来。想手动退出安全模式：删掉 `Documents/DTKiller/boot.state`。
+- 反检测默认改为关：`DTGuard.m:117` 的 `DTGuardEnable`、三处 `DTBlockHookCheck`
+  全部由 `YES` 改 `NO`；设置页三项默认值同步改 `NO`，副标题加「默认关，确认能启动
+  再打开」。
+- 防撤回默认改为关：`DTRevoke.m` 两处 `DTRevokeEnable` 由 `YES` 改 `NO`，
+  `DTRevokeAllowSelf` 默认 `NO`。它的兜底扫描会遍历所有 `C/M/W` 开头的类、把所有
+  名字含 `Revoke` 且签名 `void(id)` 的方法挂成空实现，风险面比其它模块大得多。
+- 结论：这一版装上应该能正常启动，但**功能一个都不会自动生效**，需要在设置页手动打开。
+  逐项打开的过程同时也是定位「到底是哪个模块导致崩溃」的过程。
+
 ## 0.2.0 — 2026-11-20
 
 工程改动，功能与 0.1.1 完全一致。

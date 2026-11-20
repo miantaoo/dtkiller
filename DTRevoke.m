@@ -47,12 +47,12 @@ static const NSTimeInterval kSelfWindow = 3.0;
 static void n_onRevokeMsg(id self, SEL _cmd, id arg) {
     IMP o = DTOrigFor(object_getClass(self), _cmd);
 
-    if (!DTBool(kEn, YES)) {
+    if (!DTBool(kEn, NO)) {
         if (o) ((void (*)(id, SEL, id))o)(self, _cmd, arg);
         return;
     }
 
-    if (DTBool(kAllowSelf, YES) && gSelfRevokeAt > 0) {
+    if (DTBool(kAllowSelf, NO) && gSelfRevokeAt > 0) {
         NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
         if (now - gSelfRevokeAt < kSelfWindow) {
             NSTimeInterval dt = now - gSelfRevokeAt;
@@ -106,7 +106,7 @@ static int dtHookVoidID(const char *selName, IMP newImp) {
 void DTModuleRevokeInstall(void) {
     if (gDidInstall) return;
     gDidInstall = YES;
-    if (!DTBool(kEn, YES)) { DTLog(@"revoke: disabled"); return; }
+    if (!DTBool(kEn, NO)) { DTLog(@"revoke: disabled"); return; }
 
     // 本机发起撤回的入口（名字各版本不统一，逐个试，只认 void(id) 签名）。
     // 提到函数顶部是为了让下面的兜底扫描也能跳过它们。
@@ -122,7 +122,7 @@ void DTModuleRevokeInstall(void) {
 
     // 本机发起撤回的入口。名字在各版本不统一，逐个试，只认 void(id) 签名。
     int selfn = 0;
-    if (DTBool(kAllowSelf, YES)) {
+    if (DTBool(kAllowSelf, NO)) {
         for (size_t i = 0; i < selfSelCount; i++) {
             if (!strcmp(selfSels[i], "onRevokeMsg:") ||
                 !strcmp(selfSels[i], "OnRevokeMsg:")) continue;
@@ -169,7 +169,7 @@ void DTModuleRevokeInstall(void) {
     }
 
     DTLog(@"revoke: armed onRevokeMsg=%d, variants=%d, selfEntry=%d (allowSelf=%d)",
-          n, variants, selfn, (int)DTBool(kAllowSelf, YES));
+          n, variants, selfn, (int)DTBool(kAllowSelf, NO));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

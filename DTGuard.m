@@ -114,12 +114,12 @@ void DTModuleGuardInstall(void) {
     if (done) return;
     done = YES;
 
-    if (!DTBool(kGuardOn, YES)) { DTLog(@"guard: disabled"); return; }
+    if (!DTBool(kGuardOn, NO)) { DTLog(@"guard: disabled"); return; }
 
     int hooked = 0;
 
     // ---- A 组 ----
-    if (DTBool(kBlockHook, YES)) {
+    if (DTBool(kBlockHook, NO)) {
         for (int i = 0; kDenySels[i]; i++) {
             const char *s = kDenySels[i];
             NSArray *owners = DTOwnerClassesForSelector(s);
@@ -151,7 +151,7 @@ void DTModuleGuardInstall(void) {
     }
 
     // ---- C 组：image 列表 / 进程列表返回空 ----
-    if (DTBool(kBlockHook, YES)) {
+    if (DTBool(kBlockHook, NO)) {
         for (int i = 0; kEmptySels[i]; i++) {
             const char *s = kEmptySels[i];
             for (NSString *cn in DTOwnerClassesForSelector(s)) {
@@ -193,7 +193,7 @@ void DTModuleGuardInstall(void) {
     // ---- 类方法版本（有些检测放在 + 方法里）----
     // 必须和 A 组同一个开关：原来这段写在 if (kBlockHook) 之外，
     // 用户关掉「屏蔽 hook 校验」后类方法版本照样被 no-op，开关等于骗人。
-    if (DTBool(kBlockHook, YES)) {
+    if (DTBool(kBlockHook, NO)) {
         for (int i = 0; kDenySels[i]; i++) {
             const char *s = kDenySels[i];
             for (NSString *cn in DTWeChatClassNames()) {
