@@ -1,0 +1,513 @@
+{
+ "WCPureExtension.dylib": {
+  "path": "D:\\deepseek harness\\wechat\\WCPureExtension.dylib",
+  "size": 17026253,
+  "sha256": "bab760a04c4801e8b41929501d617bde60460140b92c9af1c09033ed528ca35b",
+  "sigs": {
+   "png": {
+    "count": 36,
+    "first": [
+     "0xda8010",
+     "0xdaa930",
+     "0xdb2420",
+     "0xdb37e0",
+     "0xdb4ba0",
+     "0xdb5fe0"
+    ]
+   },
+   "jpeg": {
+    "count": 99,
+    "first": [
+     "0x2153b",
+     "0x9e6ec1",
+     "0x9e837f",
+     "0x9e8505",
+     "0x9e8af3",
+     "0x9ffb2f"
+    ]
+   },
+   "gif89": {
+    "count": 5,
+    "first": [
+     "0xa62a9c",
+     "0xa62acc",
+     "0xa62ad8",
+     "0xc08a96",
+     "0xc09126"
+    ]
+   },
+   "gif87": {
+    "count": 4,
+    "first": [
+     "0xa62ac6",
+     "0xa62ad2",
+     "0xc08a90",
+     "0xc09120"
+    ]
+   },
+   "webp": {
+    "count": 2,
+    "first": [
+     "0x977cc1",
+     "0xc11114"
+    ]
+   },
+   "bmp": {
+    "count": 120,
+    "first": [
+     "0xdcd88",
+     "0xf9141",
+     "0x12d5f1",
+     "0x169d88",
+     "0x16e2dd",
+     "0x16fda1"
+    ]
+   },
+   "tiff_be": {
+    "count": 16,
+    "first": [
+     "0xda8046",
+     "0xdaa966",
+     "0xdb3159",
+     "0xdb4519",
+     "0xdb58d9",
+     "0xdb6d19"
+    ]
+   }
+  },
+  "names": {
+   "/System/Library/Frameworks/Foundation.framework/Foundation": 1,
+   "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation": 1,
+   "/System/Library/Frameworks/UIKit.framework/UIKit": 1,
+   "/System/Library/Frameworks/QuartzCore.framework/QuartzCore": 1,
+   "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics": 1,
+   "/System/Library/Frameworks/Accelerate.framework/Accelerate": 1,
+   "/System/Library/Frameworks/Photos.framework/Photos": 1,
+   "/System/Library/Frameworks/AudioToolbox.framework/AudioToolbox": 1,
+   "/System/Library/Frameworks/VideoToolbox.framework/VideoToolbox": 1,
+   "/System/Library/Frameworks/CoreMedia.framework/CoreMedia": 1,
+   "/System/Library/Frameworks/LocalAuthentication.framework/LocalAuthentication": 1,
+   "/System/Library/Frameworks/AVFoundation.framework/AVFoundation": 1,
+   "/System/Library/Frameworks/CoreServices.framework/CoreServices": 1,
+   "/System/Library/Frameworks/CoreText.framework/CoreText": 1,
+   "/System/Library/Frameworks/CoreVideo.framework/CoreVideo": 1,
+   "/System/Library/Frameworks/ImageIO.framework/ImageIO": 1,
+   "/System/Library/Frameworks/Security.framework/Security": 1,
+   "@executable_path/Frameworks/CydiaSubstrate.framework/CydiaSubstrate": 1
+  },
+  "urls": [
+   "http://www.w3.org/2001/XMLSchema-instance",
+   "http://www.w3.org/1999/xlink",
+   "http://standards.iso.org/ittf/PubliclyAvailableStandards/MPEG-DASH_schema_files/DASH-MPD.xsd",
+   "http://dashif.org/guidelines/trickmode",
+   "http://ns.adobe.com/f4m/1.0",
+   "http://www.w3.org/2001/SMIL20/Language",
+   "https://streams.videolan.org/upload/",
+   "http://www.gnu.org/licenses/",
+   "http://www.w3.org/2001/XMLSchema-instance'",
+   "http://www.ffmpeg.org/schema/ffprobe'",
+   "http://www.ffmpeg.org/schema/ffprobe",
+   "http://lame.sf.net",
+   "http://ocsp.apple.com/ocsp03-aipca040",
+   "http://ocsp.apple.com/ocsp03-applerootca0.",
+   "http://crl.apple.com/root.crl0",
+   "https://www.apple.com/appleca/0",
+   "http://www.apple.com/DTDs/PropertyList-1.0.dtd"
+  ],
+  "skin_like": [
+   "JaBi_ChatRoom_Bubble_Text_",
+   "Masking not supported",
+   "WCPureExtensionBubbleSettingsController",
+   "adjust masking bass=%g dB, alto=%g dB, treble=%g dB,",
+   "adjust masking short: %g dB",
+   "adjust masking: %g dB",
+   "askingadjust",
+   "bubbleFolderName",
+   "da_ChatRoom_Bubble_",
+   "initBubbleFolderSettings",
+   "inter masking",
+   "interchannel masking ratio: %g",
+   "onTapBubbleCell:",
+   "setBubbleFolderName:",
+   "setInitBubbleFolderSettings:",
+   "setM_bubbleType:",
+   "skingadjust",
+   "spatial complexity masking",
+   "temporal complexity masking",
+   "the only masking",
+   "the only masking for short blocks",
+   "tu_ChatRoom_Bubble_",
+   "using temporal masking effect: %s",
+   "vbrpsy_compute_masking_l",
+   "vbrpsy_compute_masking_s"
+  ]
+ },
+ "HBWechatHelper.dylib": {
+  "path": "D:\\deepseek harness\\wechat\\HBWechatHelper.dylib",
+  "size": 35226141,
+  "sha256": "931698cd7ab2514d18cc00400b8182c1d5f88bd1b843367b6189d50a3a3c6dd9",
+  "sigs": {
+   "jpeg": {
+    "count": 104,
+    "first": [
+     "0x16e178f",
+     "0x184d86f",
+     "0x18605ff",
+     "0x18ca89f",
+     "0x1908467",
+     "0x19a636b"
+    ]
+   },
+   "gif89": {
+    "count": 4,
+    "first": [
+     "0x1b07966",
+     "0x1b07972",
+     "0x1c944f2",
+     "0x1c94a5a"
+    ]
+   },
+   "gif87": {
+    "count": 4,
+    "first": [
+     "0x1b07960",
+     "0x1b0796c",
+     "0x1c944ec",
+     "0x1c94a54"
+    ]
+   },
+   "webp": {
+    "count": 2,
+    "first": [
+     "0x1a49336",
+     "0x1c9c2e4"
+    ]
+   },
+   "bmp": {
+    "count": 225,
+    "first": [
+     "0x457e78",
+     "0x4abf71",
+     "0x4bc725",
+     "0x4bf111",
+     "0x4c2931",
+     "0x4f3630"
+    ]
+   },
+   "zip": {
+    "count": 1,
+    "first": [
+     "0x1a7fc08"
+    ]
+   },
+   "b64_png": {
+    "count": 19,
+    "first": [
+     "0x19e256f",
+     "0x19e27cc",
+     "0x19e2af1",
+     "0x19e2f52",
+     "0x19e3a83",
+     "0x19e3c94"
+    ]
+   }
+  },
+  "names": {
+   "/System/Library/Frameworks/ImageIO.framework/ImageIO": 1,
+   "/System/Library/Frameworks/Photos.framework/Photos": 1,
+   "/System/Library/Frameworks/VideoToolbox.framework/VideoToolbox": 1,
+   "/System/Library/Frameworks/Security.framework/Security": 1,
+   "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation": 1,
+   "/System/Library/Frameworks/CoreVideo.framework/CoreVideo": 1,
+   "/System/Library/Frameworks/AudioToolbox.framework/AudioToolbox": 1,
+   "/System/Library/Frameworks/CoreMedia.framework/CoreMedia": 1,
+   "/System/Library/Frameworks/QuartzCore.framework/QuartzCore": 1,
+   "/System/Library/Frameworks/LocalAuthentication.framework/LocalAuthentication": 1,
+   "/System/Library/Frameworks/CFNetwork.framework/CFNetwork": 1,
+   "/System/Library/Frameworks/SystemConfiguration.framework/SystemConfiguration": 1,
+   "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics": 1,
+   "/System/Library/Frameworks/MobileCoreServices.framework/MobileCoreServices": 1,
+   "/System/Library/Frameworks/AVFoundation.framework/AVFoundation": 1,
+   "/System/Library/Frameworks/Foundation.framework/Foundation": 1,
+   "/System/Library/Frameworks/UIKit.framework/UIKit": 1,
+   "@executable_path/Frameworks/CydiaSubstrate.framework/CydiaSubstrate": 1,
+   "/System/Library/Frameworks/CoreServices.framework/CoreServices": 1
+  },
+  "urls": [
+   "http://lame.sf.net",
+   "http://www.w3.org/2001/XMLSchema-instance",
+   "http://www.w3.org/1999/xlink",
+   "http://standards.iso.org/ittf/PubliclyAvailableStandards/MPEG-DASH_schema_files/DASH-MPD.xsd",
+   "http://dashif.org/guidelines/trickmode",
+   "http://ns.adobe.com/f4m/1.0",
+   "http://www.w3.org/2001/SMIL20/Language",
+   "https://streams.videolan.org/upload/",
+   "http://ocsp.apple.com/ocsp03-aipca040",
+   "http://ocsp.apple.com/ocsp03-applerootca0.",
+   "http://crl.apple.com/root.crl0",
+   "https://www.apple.com/appleca/0",
+   "http://www.apple.com/DTDs/PropertyList-1.0.dtd"
+  ],
+  "skin_like": [
+   "BubbleFileController",
+   "Masking not supported",
+   "RepeatmaskingString",
+   "T@\"NSString\",C,N,V_RepeatmaskingString",
+   "_OBJC_CLASS_$_BubbleFileController",
+   "_OBJC_METACLASS_$_BubbleFileController",
+   "_RepeatmaskingString",
+   "_lame_get_maskingadjust",
+   "_lame_get_maskingadjust_short",
+   "_lame_set_maskingadjust",
+   "_lame_set_maskingadjust_short",
+   "adjust masking bass=%g dB, alto=%g dB, treble=%g dB,",
+   "adjust masking short: %g dB",
+   "adjust masking: %g dB",
+   "askingadjust",
+   "bubbleFiles",
+   "bubbleFiless",
+   "bubbleInfoWithType:position:isSender:",
+   "bubbleName",
+   "bubbleNameHL",
+   "bubbleTmpFilePath:",
+   "enableBeautifyBubbles",
+   "enableBoolTheme",
+   "enableBubblesPic:",
+   "enableEditBoolTheme:",
+   "fastRepeatmasking:",
+   "getBubbleImage:isDarkMode:",
+   "importBubbleFile",
+   "inter masking",
+   "interchannel masking ratio: %g",
+   "setBubbleFileName:",
+   "setEditBoolThemePic",
+   "setEditBoolThemePicer",
+   "setEnableBeautifyBubbles:",
+   "setEnableBoolTheme:",
+   "setRepeatmaskingString:",
+   "spatial complexity masking",
+   "temporal complexity masking",
+   "the only masking",
+   "the only masking for short blocks",
+   "using temporal masking effect: %s"
+  ]
+ },
+ "MiYou.dylib": {
+  "path": "D:\\deepseek harness\\wechat\\MiYou.dylib",
+  "size": 28849849,
+  "sha256": "b8e6f495563abb5d8ef3cd842e3c65a6854c766d1d196fb80c6f12e40dd4661a",
+  "sigs": {
+   "jpeg": {
+    "count": 4,
+    "first": [
+     "0x191d3c1",
+     "0x191e87f",
+     "0x191ea05",
+     "0x191eff3"
+    ]
+   },
+   "bmp": {
+    "count": 34,
+    "first": [
+     "0x7c801",
+     "0x115c74",
+     "0x2df461",
+     "0x440f38",
+     "0x470ecc",
+     "0x4766f1"
+    ]
+   },
+   "gzip": {
+    "count": 1,
+    "first": [
+     "0x19dfb8d"
+    ]
+   }
+  },
+  "names": {
+   "/System/Library/Frameworks/AVKit.framework/AVKit": 1,
+   "/System/Library/Frameworks/WebKit.framework/WebKit": 1,
+   "/System/Library/Frameworks/UserNotifications.framework/UserNotifications": 1,
+   "/System/Library/Frameworks/AVFoundation.framework/AVFoundation": 1,
+   "/System/Library/Frameworks/CoreSpotlight.framework/CoreSpotlight": 1,
+   "/System/Library/Frameworks/CoreMotion.framework/CoreMotion": 1,
+   "/System/Library/Frameworks/SafariServices.framework/SafariServices": 1,
+   "/System/Library/Frameworks/QuartzCore.framework/QuartzCore": 1,
+   "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics": 1,
+   "/System/Library/Frameworks/AudioToolbox.framework/AudioToolbox": 1,
+   "/System/Library/Frameworks/UIKit.framework/UIKit": 1,
+   "/System/Library/Frameworks/Foundation.framework/Foundation": 1,
+   "/System/Library/Frameworks/LocalAuthentication.framework/LocalAuthentication": 1,
+   "/System/Library/Frameworks/CoreText.framework/CoreText": 1,
+   "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation": 1,
+   "rms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.4.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSRange.h": 1,
+   "s/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.4.sdk/System/Library/Frameworks/CoreGraphics.framework/Headers/CGGeometry.h": 1,
+   "rms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.4.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSObject.h": 1,
+   "latforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.4.sdk/System/Library/Frameworks/UIKit.framework/Headers/UIGeometry.h": 1
+  },
+  "urls": [
+   "http://lame.sf.net",
+   "http://ocsp.apple.com/ocsp03-aipca040",
+   "http://ocsp.apple.com/ocsp03-applerootca0.",
+   "http://crl.apple.com/root.crl0",
+   "https://www.apple.com/appleca/0",
+   "http://www.apple.com/DTDs/PropertyList-1.0.dtd"
+  ],
+  "skin_like": [
+   "$AppFileMessageCellView_importTheme$_closure",
+   "$AppFileMessageCellView_importTheme$_method",
+   "$AppFileMessageCellView_importTheme$_method_block_invoke",
+   "$AppFileMessageCellView_importTheme$_method_block_invoke.481",
+   "$AppFileMessageCellView_importTheme$_method_block_invoke_2",
+   "$AppFileMessageCellView_importTheme$_method_block_invoke_2.485",
+   "$AppFileMessageCellView_importTheme$_method_block_invoke_3",
+   "$AppFileMessageCellView_importTheme$_method_block_invoke_4",
+   "$AppFileMessageCellView_importTheme$_super",
+   "+[LMUtils currentTheme]",
+   "+[LMUtils themePath]",
+   "+[WCThemeMgr shared]",
+   "-[MYThemesViewController .cxx_destruct]",
+   "-[MYThemesViewController dataSource]",
+   "-[MYThemesViewController documentPicker:didPickDo",
+   "-[MYThemesViewController fakeNaviView]",
+   "-[MYThemesViewController importTheme]",
+   "-[MYThemesViewController initNavHeaderIfNeed]",
+   "-[MYThemesViewController loadTableData]",
+   "-[MYThemesViewController setDataSource:]",
+   "-[MYThemesViewController setFakeNaviView:]",
+   "-[MYThemesViewController setTableView:]",
+   "-[MYThemesViewController tableView:cellForRowAtIn",
+   "-[MYThemesViewController tableView:didSelectRowAt",
+   "-[MYThemesViewController tableView:editActionsFor",
+   "-[MYThemesViewController tableView:numberOfRowsIn",
+   "-[MYThemesViewController tableView:titleForFooter",
+   "-[MYThemesViewController tableView]",
+   "-[MYThemesViewController viewDidLoad]",
+   "-[MYThemesViewController viewWillLayoutSubviews]",
+   "-[MiYouConfig setThemeName:]",
+   "-[MiYouConfig themeName]",
+   "-[WCThemeMgr .cxx_destruct]",
+   "-[WCThemeMgr applyBGWithController:]",
+   "-[WCThemeMgr assetcs]",
+   "-[WCThemeMgr getFileWithName:]",
+   "-[WCThemeMgr imageNamed:]",
+   "-[WCThemeMgr setAssetcs:]",
+   ".build/Objects-normal/arm64/MYThemesViewController.o",
+   ".build/Objects-normal/arm64/WCThemeMgr.o",
+   "@\"MMThemeManager\"",
+   "MYThemesViewController",
+   "MYThemesViewController.m",
+   "MiYou/MYThemesViewController.m",
+   "MiYou/ThemeManager.m",
+   "MiYou/WCThemeMgr.h",
+   "MiYou/WCThemeMgr.m",
+   "T@\"NSString\",&,N,V_themeName",
+   "ThemeManager.m",
+   "ThemesViewController",
+   "WCThemeMgr",
+   "WCThemeMgr.m",
+   "_$MMThemeManager_imageNamed$_method",
+   "_$MMThemeManager_imageNamed$_super",
+   "_MMThemeManager$",
+   "_OBJC_CLASS_$_MYThemesViewController",
+   "_OBJC_CLASS_$_WCThemeMgr",
+   "_OBJC_IVAR_$_MYThemesViewController._dataSource",
+   "_OBJC_IVAR_$_MYThemesViewController._fakeNaviView",
+   "_OBJC_IVAR_$_MYThemesViewController._tableView",
+   "_OBJC_IVAR_$_MiYouConfig._themeName",
+   "_OBJC_IVAR_$_WCThemeMgr._assetcs",
+   "_OBJC_METACLASS_$_MYThemesViewController",
+   "_OBJC_METACLASS_$_WCThemeMgr",
+   "__OBJC_$_CLASS_METHODS_WCThemeMgr",
+   "__OBJC_$_INSTANCE_METHODS_MYThemesViewController",
+   "__OBJC_$_INSTANCE_METHODS_WCThemeMgr",
+   "__OBJC_$_INSTANCE_VARIABLES_MYThemesViewController",
+   "__OBJC_$_INSTANCE_VARIABLES_WCThemeMgr",
+   "__OBJC_$_PROP_LIST_MYThemesViewController",
+   "__OBJC_$_PROP_LIST_WCThemeMgr",
+   "__OBJC_CLASS_PROTOCOLS_$_MYThemesViewController",
+   "__OBJC_CLASS_RO_$_MYThemesViewController",
+   "__OBJC_CLASS_RO_$_WCThemeMgr",
+   "__OBJC_METACLASS_RO_$_MYThemesViewController",
+   "__OBJC_METACLASS_RO_$_WCThemeMgr",
+   "___20+[WCThemeMgr shared]_block_invoke",
+   "___39-[MYThemesViewController loadTableData]_block_inv",
+   "___60-[MYThemesViewController tableView:didSelectRowAt",
+   "___64-[MYThemesViewController documentPicker:didPickDo",
+   "___65-[MYThemesViewController tableView:editActionsFor",
+   "_lame_get_maskingadjust",
+   "_lame_get_maskingadjust_short",
+   "_lame_set_maskingadjust",
+   "_lame_set_maskingadjust_short",
+   "_themeName",
+   "_vbrpsy_compute_masking_l",
+   "_vbrpsy_compute_masking_s",
+   "_vbrpsy_skip_masking_s",
+   "adjust masking bass=%g dB, alto=%g dB, treble=%g dB,",
+   "adjust masking short: %g dB",
+   "adjust masking: %g dB",
+   "askingadjust",
+   "currentTheme",
+   "iYouToolActionsViewController.themeMgr",
+   "importTheme",
+   "importTheme:",
+   "interchannel masking ratio: %g",
+   "ou.build/Objects-normal/arm64/ThemeManager.o",
+   "setThemeName:",
+   "settingTheme",
+   "the only masking",
+   "the only masking for short blocks",
+   "themeMgr",
+   "themeName",
+   "themePath",
+   "uSettingViewController settingTheme]",
+   "using temporal masking effect: %s"
+  ]
+ },
+ "MisakaHelper.dylib": {
+  "path": "D:\\deepseek harness\\wechat\\MisakaHelper.dylib",
+  "size": 51163406,
+  "sha256": "cf69088e6f059e9624b48a1218d0b89515ef1951242181e07655448586666064",
+  "sigs": {
+   "bmp": {
+    "count": 127,
+    "first": [
+     "0x213ffd",
+     "0x21a851",
+     "0x21a8a9",
+     "0x260d5d",
+     "0x264e65",
+     "0x278fad"
+    ]
+   }
+  },
+  "names": {
+   "/System/Library/Frameworks/Foundation.framework/Foundation": 1,
+   "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation": 1,
+   "/System/Library/Frameworks/UIKit.framework/UIKit": 1,
+   "@executable_path/Frameworks/CydiaSubstrate.framework/CydiaSubstrate": 1,
+   "/System/Library/Frameworks/AVFoundation.framework/AVFoundation": 1,
+   "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics": 1,
+   "/System/Library/Frameworks/CoreImage.framework/CoreImage": 1,
+   "/System/Library/Frameworks/CoreMedia.framework/CoreMedia": 1,
+   "/System/Library/Frameworks/Photos.framework/Photos": 1,
+   "/System/Library/Frameworks/QuartzCore.framework/QuartzCore": 1,
+   "/System/Library/Frameworks/UserNotifications.framework/UserNotifications": 1
+  },
+  "urls": [
+   "http://ocsp.apple.com/ocsp03-aipca040",
+   "http://ocsp.apple.com/ocsp03-applerootca0.",
+   "http://crl.apple.com/root.crl0",
+   "https://www.apple.com/appleca/0",
+   "http://www.apple.com/DTDs/PropertyList-1.0.dtd"
+  ],
+  "skin_like": [
+   "T@\"PJPluginDataModel\",&,N,V_theme777",
+   "_theme777",
+   "setTheme777:",
+   "theme777",
+   "wc_Theme77:",
+   "wc_ThemeManager:"
+  ]
+ }
+}

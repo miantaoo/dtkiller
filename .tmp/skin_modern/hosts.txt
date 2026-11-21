@@ -1,0 +1,46 @@
+=== WCPureExtension.dylib (17026253 bytes)
+  font ttf x10205
+  font otto x3
+  font true x29
+  iconfont tokens: []
+  hosts:
+        4  ffmpeg.org
+        3  http://www.w3.org/2001/XMLSchema-instance
+        2  upload.ffmpeg.org/incoming/
+        2  http://www.ffmpeg.org/schema/ffprobe
+        1  lavfi.idet.repeated.top
+        1  http://www.w3.org/1999/xlink
+        1  http://standards.iso.org/ittf/PubliclyAvailableStandards/MPEG-DASH_schema_files/DASH-
+        1  http://dashif.org/guidelines/trickmode
+        1  http://ns.adobe.com/f4m/1.0
+        1  http://www.w3.org/2001/SMIL20/Language
+        1  https://streams.videolan.org/upload/
+        1  http://lame.sf.net
+
+=== HBWechatHelper.dylib (35226141 bytes)
+  font ttf x5612
+  font otto x1
+  font true x31
+  iconfont tokens: []
+  hosts:
+        2  ffmpeg.org
+        2  http://www.w3.org/2001/XMLSchema-instance
+        1  http://lame.sf.net
+        1  http://www.w3.org/1999/xlink
+        1  http://standards.iso.org/ittf/PubliclyAvailableStandards/MPEG-DASH_schema_files/DASH-
+        1  http://dashif.org/guidelines/trickmode
+        1  http://ns.adobe.com/f4m/1.0
+        1  http://www.w3.org/2001/SMIL20/Language
+        1  https://streams.videolan.org/upload/
+
+=== MiYou.dylib (28849849 bytes)
+  font ttf x10259
+  iconfont tokens: []
+  hosts:
+        1  http://lame.sf.net
+
+=== MisakaHelper.dylib (51163406 bytes)
+  font ttf x2744
+  iconfont tokens: []
+  hosts:
+

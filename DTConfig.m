@@ -6,6 +6,7 @@
 #import "DTLog.h"
 
 static NSString *const kDTMigratedFlag = @"DTMigratedV1";
+static NSString *const kDTBalanceTypeFixFlag = @"DTBalanceEnableTypeFixV1";
 
 static NSUserDefaults *DTDefaults(void) {
     // 独立域 com.dt.killer。
@@ -149,8 +150,32 @@ BOOL DTImportJSON(NSString *json) {
 // 旧插件键 → 本插件键。只迁移能一一对应的，其余保持原键不动（旧插件还在时仍生效）。
 // 注意：旧键都在 com.tencent.xin 域，本插件写的是 com.dt.killer 域，所以这里要显式读旧域。
 void DTMigrateFromLegacyIfNeeded(void) {
-    if (DTBool(kDTMigratedFlag, NO)) return;
     NSUserDefaults *u = DTDefaults();
+
+    // editMoney 是旧插件的金额值（用户配置里曾出现 2847943），不是 BOOL 开关。
+    // 0.2.5 曾误把它迁到 DTBalanceEnable，导致 UI 读到真值但类型错误；一次性清理
+    // 非 0/1 值，保留合法开关，并且不把旧“绝对余额”误当成“余额偏移”。
+    if (![u boolForKey:kDTBalanceTypeFixFlag]) {
+        id rawEnable = [u objectForKey:@"DTBalanceEnable"];
+        if (rawEnable) {
+            if ([rawEnable isKindOfClass:[NSNumber class]]) {
+                double n = [rawEnable doubleValue];
+                if (n == 0.0 || n == 1.0) {
+                    [u setBool:(n == 1.0) forKey:@"DTBalanceEnable"];
+                } else {
+                    [u removeObjectForKey:@"DTBalanceEnable"];
+                    DTLog(@"config: removed invalid legacy DTBalanceEnable value (%@)", rawEnable);
+                }
+            } else {
+                [u removeObjectForKey:@"DTBalanceEnable"];
+                DTLog(@"config: removed non-boolean DTBalanceEnable value (%@)", rawEnable);
+            }
+        }
+        [u setBool:YES forKey:kDTBalanceTypeFixFlag];
+        [u synchronize];
+    }
+
+    if (DTBool(kDTMigratedFlag, NO)) return;
     NSUserDefaults *legacy = [NSUserDefaults standardUserDefaults];
     if (legacy == u) legacy = nil;   // suite 建失败退回标准域时，不重复读
 
@@ -159,8 +184,6 @@ void DTMigrateFromLegacyIfNeeded(void) {
         {"MIsVoiceProgressKey",    "DTVoiceBarEnable"},
         // 语音转发
         {"mIsForwardVoice",        "DTVoiceFwdEnable"},
-        // 改余额
-        {"editMoney",              "DTBalanceEnable"},
         // 群头像
         {"theGroupHeadImageBOOL",  "DTGroupAvatarEnable"},
         // 朋友圈尾巴

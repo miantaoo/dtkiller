@@ -42,7 +42,7 @@ NSString *DTDiagText(void) {
 
     NSString *uiStage = [NSString stringWithContentsOfFile:[diagDir stringByAppendingPathComponent:@"ui.stage"]
                                                   encoding:NSUTF8StringEncoding error:NULL] ?: @"(missing)";
-    [s appendFormat:@"设置页阶段 : %@\\n", uiStage];
+    [s appendFormat:@"设置页阶段 : %@\n", uiStage];
 
     NSDictionary *attrs = [[NSFileManager defaultManager] attributesOfItemAtPath:DTLogCurrentPath() error:NULL];
     if (attrs) {

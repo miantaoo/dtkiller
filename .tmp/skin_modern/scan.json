@@ -1,0 +1,1610 @@
+{
+ "files": [
+  {
+   "path": "D:\\deepseek harness\\wechat\\WCPureExtension.dylib",
+   "size": 17026253,
+   "sha256": "bab760a04c4801e8b41929501d617bde60460140b92c9af1c09033ed528ca35b",
+   "magic": "cffaedfe0c000001",
+   "png": [
+    {
+     "offset": 14319632,
+     "length": 10503,
+     "width": 300,
+     "height": 300,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "eXIf",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "652366338bc4f8823a5c44840f1e3bd2f9c07e9109e4630aba32eedfeca68b43",
+     "idat_bytes": 10353,
+     "carved_as": "WCPureExtension_png_00da8010.png"
+    },
+    {
+     "offset": 14330160,
+     "length": 31148,
+     "width": 300,
+     "height": 306,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "eXIf",
+      "IDAT",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "535c1d410aeb7c5b298dc3b9d97b3e5264004079ef9ec6bcde0d5ad55d3787db",
+     "idat_bytes": 30986,
+     "carved_as": "WCPureExtension_png_00daa930.png"
+    },
+    {
+     "offset": 14361632,
+     "length": 5032,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 4,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "iCCP",
+      "eXIf",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "3631a8a3e66f88c2f43867f927f4b2b16e3b82822a7506fd416de1855f1108bd",
+     "idat_bytes": 1563,
+     "carved_as": "WCPureExtension_png_00db2420.png"
+    },
+    {
+     "offset": 14366688,
+     "length": 5032,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 4,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "iCCP",
+      "eXIf",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "3631a8a3e66f88c2f43867f927f4b2b16e3b82822a7506fd416de1855f1108bd",
+     "idat_bytes": 1563,
+     "carved_as": "WCPureExtension_png_00db37e0.png"
+    },
+    {
+     "offset": 14371744,
+     "length": 5156,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 4,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "iCCP",
+      "eXIf",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "a7d49d453678887dd1afd3a46a778a5dca5b76ca334f2e69825d65547624ef16",
+     "idat_bytes": 1687,
+     "carved_as": "WCPureExtension_png_00db4ba0.png"
+    },
+    {
+     "offset": 14376928,
+     "length": 5156,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 4,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "iCCP",
+      "eXIf",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "a7d49d453678887dd1afd3a46a778a5dca5b76ca334f2e69825d65547624ef16",
+     "idat_bytes": 1687,
+     "carved_as": "WCPureExtension_png_00db5fe0.png"
+    },
+    {
+     "offset": 14382112,
+     "length": 2659,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "eXIf",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "b0695127fbd71decf6c1aa2ca6bc00318929d5afc80b63ec5268554f9d24cd72",
+     "idat_bytes": 2509,
+     "carved_as": "WCPureExtension_png_00db7420.png"
+    },
+    {
+     "offset": 14384800,
+     "length": 2659,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "eXIf",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "b0695127fbd71decf6c1aa2ca6bc00318929d5afc80b63ec5268554f9d24cd72",
+     "idat_bytes": 2509,
+     "carved_as": "WCPureExtension_png_00db7ea0.png"
+    },
+    {
+     "offset": 14387488,
+     "length": 2720,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "eXIf",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "da3eb9fa800c2d2c92f7cfc12fd970a7a127683f2d92fc5cb32760dcef380c6a",
+     "idat_bytes": 2570,
+     "carved_as": "WCPureExtension_png_00db8920.png"
+    },
+    {
+     "offset": 14390240,
+     "length": 2720,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "eXIf",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "da3eb9fa800c2d2c92f7cfc12fd970a7a127683f2d92fc5cb32760dcef380c6a",
+     "idat_bytes": 2570,
+     "carved_as": "WCPureExtension_png_00db93e0.png"
+    },
+    {
+     "offset": 14392992,
+     "length": 3804,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "eXIf",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "af22224aeedb1914ced3c3b3e40dd0c6ce7c4d79a319d1cb822679346c83eb44",
+     "idat_bytes": 3581,
+     "carved_as": "WCPureExtension_png_00db9ea0.png"
+    },
+    {
+     "offset": 14396816,
+     "length": 2906,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "dd287814309a06dbad5f671e2acfc89727d5e5e8a84149526e49df66ec515a95",
+     "idat_bytes": 2836,
+     "carved_as": "WCPureExtension_png_00dbad90.png"
+    },
+    {
+     "offset": 14399744,
+     "length": 2998,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "eXIf",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "239bed0357550edb10f30e1286ffa80af742a12cd3918c18bc39405ecbf6758b",
+     "idat_bytes": 2775,
+     "carved_as": "WCPureExtension_png_00dbb900.png"
+    },
+    {
+     "offset": 14402768,
+     "length": 2998,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "eXIf",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "239bed0357550edb10f30e1286ffa80af742a12cd3918c18bc39405ecbf6758b",
+     "idat_bytes": 2775,
+     "carved_as": "WCPureExtension_png_00dbc4d0.png"
+    },
+    {
+     "offset": 14405792,
+     "length": 1372,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 3,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "PLTE",
+      "tRNS",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "f80a1d07d80d585762d654e9bb282de5c3f364d46174931fdde078f624cb78c3",
+     "idat_bytes": 626,
+     "carved_as": "WCPureExtension_png_00dbd0a0.png"
+    },
+    {
+     "offset": 14407184,
+     "length": 1372,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 3,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "PLTE",
+      "tRNS",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "f80a1d07d80d585762d654e9bb282de5c3f364d46174931fdde078f624cb78c3",
+     "idat_bytes": 626,
+     "carved_as": "WCPureExtension_png_00dbd610.png"
+    },
+    {
+     "offset": 14408576,
+     "length": 3804,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "eXIf",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "af22224aeedb1914ced3c3b3e40dd0c6ce7c4d79a319d1cb822679346c83eb44",
+     "idat_bytes": 3581,
+     "carved_as": "WCPureExtension_png_00dbdb80.png"
+    },
+    {
+     "offset": 14412400,
+     "length": 3804,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "eXIf",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "af22224aeedb1914ced3c3b3e40dd0c6ce7c4d79a319d1cb822679346c83eb44",
+     "idat_bytes": 3581,
+     "carved_as": "WCPureExtension_png_00dbea70.png"
+    },
+    {
+     "offset": 14416224,
+     "length": 2906,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "dd287814309a06dbad5f671e2acfc89727d5e5e8a84149526e49df66ec515a95",
+     "idat_bytes": 2836,
+     "carved_as": "WCPureExtension_png_00dbf960.png"
+    },
+    {
+     "offset": 14419152,
+     "length": 2906,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "dd287814309a06dbad5f671e2acfc89727d5e5e8a84149526e49df66ec515a95",
+     "idat_bytes": 2836,
+     "carved_as": "WCPureExtension_png_00dc04d0.png"
+    },
+    {
+     "offset": 14422080,
+     "length": 2906,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "dd287814309a06dbad5f671e2acfc89727d5e5e8a84149526e49df66ec515a95",
+     "idat_bytes": 2836,
+     "carved_as": "WCPureExtension_png_00dc1040.png"
+    },
+    {
+     "offset": 14425008,
+     "length": 3804,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "eXIf",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "af22224aeedb1914ced3c3b3e40dd0c6ce7c4d79a319d1cb822679346c83eb44",
+     "idat_bytes": 3581,
+     "carved_as": "WCPureExtension_png_00dc1bb0.png"
+    },
+    {
+     "offset": 14428832,
+     "length": 2906,
+     "width": 171,
+     "height": 120,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "sRGB",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "dd287814309a06dbad5f671e2acfc89727d5e5e8a84149526e49df66ec515a95",
+     "idat_bytes": 2836,
+     "carved_as": "WCPureExtension_png_00dc2aa0.png"
+    },
+    {
+     "offset": 14431760,
+     "length": 1629,
+     "width": 172,
+     "height": 121,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "fb8de644b218bed5b02e1c78de28970dee620d77d652047f51dd163f55831c11",
+     "idat_bytes": 1551,
+     "carved_as": "WCPureExtension_png_00dc3610.png"
+    },
+    {
+     "offset": 14433408,
+     "length": 1596,
+     "width": 172,
+     "height": 121,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "5f21c4002f7ee3dd0e71fa6c8960d2dc0928f0ba38043643eb562e55a74e568b",
+     "idat_bytes": 1518,
+     "carved_as": "WCPureExtension_png_00dc3c80.png"
+    },
+    {
+     "offset": 14435024,
+     "length": 1531,
+     "width": 172,
+     "height": 121,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "73445f383bf7c6f7c1fcc022a15fa2ee4a3d4561f47dc7067e205b068d75dbe9",
+     "idat_bytes": 1453,
+     "carved_as": "WCPureExtension_png_00dc42d0.png"
+    },
+    {
+     "offset": 14436576,
+     "length": 1531,
+     "width": 172,
+     "height": 121,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "73445f383bf7c6f7c1fcc022a15fa2ee4a3d4561f47dc7067e205b068d75dbe9",
+     "idat_bytes": 1453,
+     "carved_as": "WCPureExtension_png_00dc48e0.png"
+    },
+    {
+     "offset": 14438128,
+     "length": 1555,
+     "width": 172,
+     "height": 121,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "a88d0cb8ec79d10615bee96ddf14c8dfa9818f816d0d8c609412747713e8ee77",
+     "idat_bytes": 1477,
+     "carved_as": "WCPureExtension_png_00dc4ef0.png"
+    },
+    {
+     "offset": 14439712,
+     "length": 1555,
+     "width": 172,
+     "height": 121,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "a88d0cb8ec79d10615bee96ddf14c8dfa9818f816d0d8c609412747713e8ee77",
+     "idat_bytes": 1477,
+     "carved_as": "WCPureExtension_png_00dc5520.png"
+    },
+    {
+     "offset": 14441296,
+     "length": 1629,
+     "width": 172,
+     "height": 121,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "fb8de644b218bed5b02e1c78de28970dee620d77d652047f51dd163f55831c11",
+     "idat_bytes": 1551,
+     "carved_as": "WCPureExtension_png_00dc5b50.png"
+    },
+    {
+     "offset": 14442944,
+     "length": 1629,
+     "width": 172,
+     "height": 121,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "fb8de644b218bed5b02e1c78de28970dee620d77d652047f51dd163f55831c11",
+     "idat_bytes": 1551,
+     "carved_as": "WCPureExtension_png_00dc61c0.png"
+    },
+    {
+     "offset": 14444592,
+     "length": 1596,
+     "width": 172,
+     "height": 121,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "5f21c4002f7ee3dd0e71fa6c8960d2dc0928f0ba38043643eb562e55a74e568b",
+     "idat_bytes": 1518,
+     "carved_as": "WCPureExtension_png_00dc6830.png"
+    },
+    {
+     "offset": 14446208,
+     "length": 1596,
+     "width": 172,
+     "height": 121,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "5f21c4002f7ee3dd0e71fa6c8960d2dc0928f0ba38043643eb562e55a74e568b",
+     "idat_bytes": 1518,
+     "carved_as": "WCPureExtension_png_00dc6e80.png"
+    },
+    {
+     "offset": 14447824,
+     "length": 1596,
+     "width": 172,
+     "height": 121,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "5f21c4002f7ee3dd0e71fa6c8960d2dc0928f0ba38043643eb562e55a74e568b",
+     "idat_bytes": 1518,
+     "carved_as": "WCPureExtension_png_00dc74d0.png"
+    },
+    {
+     "offset": 14449440,
+     "length": 1629,
+     "width": 172,
+     "height": 121,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "fb8de644b218bed5b02e1c78de28970dee620d77d652047f51dd163f55831c11",
+     "idat_bytes": 1551,
+     "carved_as": "WCPureExtension_png_00dc7b20.png"
+    },
+    {
+     "offset": 14451088,
+     "length": 1596,
+     "width": 172,
+     "height": 121,
+     "bitdepth": 8,
+     "colortype": 6,
+     "crc_ok": true,
+     "chunks": [
+      "IHDR",
+      "pHYs",
+      "IDAT",
+      "IEND"
+     ],
+     "sha256": "5f21c4002f7ee3dd0e71fa6c8960d2dc0928f0ba38043643eb562e55a74e568b",
+     "idat_bytes": 1518,
+     "carved_as": "WCPureExtension_png_00dc8190.png"
+    }
+   ],
+   "jpeg": [],
+   "webp": [
+    {
+     "offset": 12652812,
+     "length": 8,
+     "width": null,
+     "height": null,
+     "crc_ok": true,
+     "sha256": "0f372e54a8d50ca142ffb1936ce836b2ca0e65a76c4f66fb3dd6866b8b42de84",
+     "idat_bytes": null,
+     "carved_as": "WCPureExtension_webp_00c1110c.webp"
+    }
+   ],
+   "strings": [
+    [
+     "imageNamed:",
+     1
+    ],
+    [
+     "imageNamed:inBundle:compatibleWithTraitCollection:",
+     1
+    ],
+    [
+     "temporal complexity masking",
+     1
+    ],
+    [
+     "spatial complexity masking",
+     1
+    ],
+    [
+     "inter masking",
+     1
+    ],
+    [
+     "adjust masking: %g dB",
+     1
+    ],
+    [
+     "adjust masking short: %g dB",
+     1
+    ],
+    [
+     "the only masking for short blocks",
+     1
+    ],
+    [
+     "the only masking",
+     1
+    ],
+    [
+     "   adjust masking bass=%g dB, alto=%g dB, treble=%g dB, ",
+     1
+    ],
+    [
+     "using temporal masking effect: %s",
+     1
+    ],
+    [
+     "interchannel masking ratio: %g",
+     1
+    ],
+    [
+     "vbrpsy_compute_masking_l",
+     1
+    ],
+    [
+     "vbrpsy_compute_masking_s",
+     1
+    ],
+    [
+     "initBubbleFolderSettings",
+     1
+    ],
+    [
+     "onTapBubbleCell:",
+     1
+    ],
+    [
+     "setInitBubbleFolderSettings:",
+     1
+    ],
+    [
+     "setM_bubbleType:",
+     1
+    ],
+    [
+     "WCPureExtensionBubbleSettingsController",
+     1
+    ],
+    [
+     "JaBi_ChatRoom_Bubble_Text_",
+     1
+    ],
+    [
+     "da_ChatRoom_Bubble_",
+     1
+    ],
+    [
+     "tu_ChatRoom_Bubble_",
+     1
+    ]
+   ]
+  },
+  {
+   "path": "D:\\deepseek harness\\wechat\\HBWechatHelper.dylib",
+   "size": 35226141,
+   "sha256": "931698cd7ab2514d18cc00400b8182c1d5f88bd1b843367b6189d50a3a3c6dd9",
+   "magic": "cffaedfe0c000001",
+   "png": [],
+   "jpeg": [],
+   "webp": [
+    {
+     "offset": 29999836,
+     "length": 8,
+     "width": null,
+     "height": null,
+     "crc_ok": true,
+     "sha256": "0f372e54a8d50ca142ffb1936ce836b2ca0e65a76c4f66fb3dd6866b8b42de84",
+     "idat_bytes": null,
+     "carved_as": "HBWechatHelper_webp_01c9c2dc.webp"
+    }
+   ],
+   "strings": [
+    [
+     "imageNamed:",
+     1
+    ],
+    [
+     "adjust masking: %g dB",
+     1
+    ],
+    [
+     "adjust masking short: %g dB",
+     1
+    ],
+    [
+     "the only masking for short blocks",
+     1
+    ],
+    [
+     "the only masking",
+     1
+    ],
+    [
+     "   adjust masking bass=%g dB, alto=%g dB, treble=%g dB, ",
+     1
+    ],
+    [
+     "using temporal masking effect: %s",
+     1
+    ],
+    [
+     "interchannel masking ratio: %g",
+     1
+    ],
+    [
+     "temporal complexity masking",
+     1
+    ],
+    [
+     "spatial complexity masking",
+     1
+    ],
+    [
+     "inter masking",
+     1
+    ],
+    [
+     "enableBoolTheme",
+     1
+    ],
+    [
+     "RepeatmaskingString",
+     1
+    ],
+    [
+     "T@\"NSString\",C,N,V_RepeatmaskingString",
+     1
+    ],
+    [
+     "_RepeatmaskingString",
+     1
+    ],
+    [
+     "enableBeautifyBubbles",
+     1
+    ],
+    [
+     "enableBubblesPic:",
+     1
+    ],
+    [
+     "enableEditBoolTheme:",
+     1
+    ],
+    [
+     "fastRepeatmasking:",
+     1
+    ],
+    [
+     "importBubbleFile",
+     1
+    ],
+    [
+     "setEditBoolThemePic",
+     1
+    ],
+    [
+     "setEditBoolThemePicer",
+     1
+    ],
+    [
+     "setEnableBeautifyBubbles:",
+     1
+    ],
+    [
+     "setEnableBoolTheme:",
+     1
+    ],
+    [
+     "setRepeatmaskingString:",
+     1
+    ],
+    [
+     "_OBJC_CLASS_$_BubbleFileController",
+     1
+    ],
+    [
+     "_OBJC_METACLASS_$_BubbleFileController",
+     1
+    ],
+    [
+     "_lame_get_maskingadjust",
+     1
+    ],
+    [
+     "_lame_get_maskingadjust_short",
+     1
+    ],
+    [
+     "_lame_set_maskingadjust",
+     1
+    ],
+    [
+     "_lame_set_maskingadjust_short",
+     1
+    ]
+   ]
+  },
+  {
+   "path": "D:\\deepseek harness\\wechat\\MiYou.dylib",
+   "size": 28849849,
+   "sha256": "b8e6f495563abb5d8ef3cd842e3c65a6854c766d1d196fb80c6f12e40dd4661a",
+   "magic": "cffaedfe0c000001",
+   "png": [],
+   "jpeg": [],
+   "webp": [],
+   "strings": [
+    [
+     "___65-[MYThemesViewController tableView:editActionsFor",
+     14
+    ],
+    [
+     "___60-[MYThemesViewController tableView:didSelectRowAt",
+     6
+    ],
+    [
+     "imageNamed:]",
+     2
+    ],
+    [
+     "_OBJC_CLASS_$_MYThemesViewController",
+     2
+    ],
+    [
+     "_OBJC_CLASS_$_WCThemeMgr",
+     2
+    ],
+    [
+     "_OBJC_METACLASS_$_MYThemesViewController",
+     2
+    ],
+    [
+     "_OBJC_METACLASS_$_WCThemeMgr",
+     2
+    ],
+    [
+     "_$AppFileMessageCellView_importTheme$_method",
+     2
+    ],
+    [
+     "_$AppFileMessageCellView_importTheme$_closure",
+     2
+    ],
+    [
+     "___$AppFileMessageCellView_importTheme$_method_block_invoke",
+     2
+    ],
+    [
+     "___$AppFileMessageCellView_importTheme$_method_block_invoke_2",
+     2
+    ],
+    [
+     "___$AppFileMessageCellView_importTheme$_method_block_invoke_3",
+     2
+    ],
+    [
+     "___$AppFileMessageCellView_importTheme$_method_block_invoke_4",
+     2
+    ],
+    [
+     "___$AppFileMessageCellView_importTheme$_method_block_invoke.481",
+     2
+    ],
+    [
+     "___$AppFileMessageCellView_importTheme$_method_block_invoke_2.485",
+     2
+    ],
+    [
+     "+[LMUtils themePath]",
+     2
+    ],
+    [
+     "+[LMUtils currentTheme]",
+     2
+    ],
+    [
+     "_$MMThemeManager_imageNamed$_method",
+     2
+    ],
+    [
+     "-[MYThemesViewController viewDidLoad]",
+     2
+    ],
+    [
+     "-[MYThemesViewController importTheme]",
+     2
+    ],
+    [
+     "-[MYThemesViewController documentPicker:didPickDo",
+     2
+    ],
+    [
+     "___64-[MYThemesViewController documentPicker:didPickDo",
+     2
+    ],
+    [
+     "-[MYThemesViewController loadTableData]",
+     2
+    ],
+    [
+     "___39-[MYThemesViewController loadTableData]_block_inv",
+     2
+    ],
+    [
+     "-[MYThemesViewController initNavHeaderIfNeed]",
+     2
+    ],
+    [
+     "-[MYThemesViewController viewWillLayoutSubviews]",
+     2
+    ],
+    [
+     "-[MYThemesViewController tableView:numberOfRowsIn",
+     2
+    ],
+    [
+     "-[MYThemesViewController tableView:didSelectRowAt",
+     2
+    ],
+    [
+     "-[MYThemesViewController tableView:editActionsFor",
+     2
+    ],
+    [
+     "-[MYThemesViewController tableView:cellForRowAtIn",
+     2
+    ],
+    [
+     "-[MYThemesViewController tableView:titleForFooter",
+     2
+    ],
+    [
+     "-[MYThemesViewController dataSource]",
+     2
+    ],
+    [
+     "-[MYThemesViewController tableView]",
+     2
+    ],
+    [
+     "-[MYThemesViewController setTableView:]",
+     2
+    ],
+    [
+     "-[MYThemesViewController setDataSource:]",
+     2
+    ],
+    [
+     "-[MYThemesViewController fakeNaviView]",
+     2
+    ],
+    [
+     "-[MYThemesViewController setFakeNaviView:]",
+     2
+    ],
+    [
+     "-[MYThemesViewController .cxx_destruct]",
+     2
+    ],
+    [
+     "+[WCThemeMgr shared]",
+     2
+    ],
+    [
+     "___20+[WCThemeMgr shared]_block_invoke",
+     2
+    ],
+    [
+     "-[WCThemeMgr assetcs]",
+     2
+    ],
+    [
+     "-[WCThemeMgr getFileWithName:]",
+     2
+    ],
+    [
+     "-[WCThemeMgr imageNamed:]",
+     2
+    ],
+    [
+     "-[WCThemeMgr applyBGWithController:]",
+     2
+    ],
+    [
+     "-[WCThemeMgr setAssetcs:]",
+     2
+    ],
+    [
+     "-[WCThemeMgr .cxx_destruct]",
+     2
+    ],
+    [
+     "-[MiYouSettingViewController settingTheme]",
+     2
+    ],
+    [
+     "-[MiYouConfig setThemeName:]",
+     2
+    ],
+    [
+     "-[MiYouConfig themeName]",
+     2
+    ],
+    [
+     "__OBJC_CLASS_PROTOCOLS_$_MYThemesViewController",
+     2
+    ],
+    [
+     "__OBJC_METACLASS_RO_$_MYThemesViewController",
+     2
+    ],
+    [
+     "__OBJC_$_INSTANCE_METHODS_MYThemesViewController",
+     2
+    ],
+    [
+     "__OBJC_$_INSTANCE_VARIABLES_MYThemesViewController",
+     2
+    ],
+    [
+     "__OBJC_$_PROP_LIST_MYThemesViewController",
+     2
+    ],
+    [
+     "__OBJC_CLASS_RO_$_MYThemesViewController",
+     2
+    ],
+    [
+     "__OBJC_$_CLASS_METHODS_WCThemeMgr",
+     2
+    ],
+    [
+     "__OBJC_METACLASS_RO_$_WCThemeMgr",
+     2
+    ],
+    [
+     "__OBJC_$_INSTANCE_METHODS_WCThemeMgr",
+     2
+    ],
+    [
+     "__OBJC_$_INSTANCE_VARIABLES_WCThemeMgr",
+     2
+    ],
+    [
+     "__OBJC_$_PROP_LIST_WCThemeMgr",
+     2
+    ],
+    [
+     "__OBJC_CLASS_RO_$_WCThemeMgr",
+     2
+    ],
+    [
+     "_OBJC_IVAR_$_MiYouToolActionsViewController.themeMgr",
+     2
+    ],
+    [
+     "_OBJC_IVAR_$_MYThemesViewController._dataSource",
+     2
+    ],
+    [
+     "_OBJC_IVAR_$_MYThemesViewController._tableView",
+     2
+    ],
+    [
+     "_OBJC_IVAR_$_MYThemesViewController._fakeNaviView",
+     2
+    ],
+    [
+     "_OBJC_IVAR_$_WCThemeMgr._assetcs",
+     2
+    ],
+    [
+     "_OBJC_IVAR_$_MiYouConfig._themeName",
+     2
+    ],
+    [
+     "_$AppFileMessageCellView_importTheme$_super",
+     2
+    ],
+    [
+     "_$MMThemeManager_imageNamed$_super",
+     2
+    ],
+    [
+     "imageNamed:",
+     1
+    ],
+    [
+     "imageNamed:fromConfig:",
+     1
+    ],
+    [
+     "T@\"NSString\",&,N,V_themeName",
+     1
+    ],
+    [
+     "currentTheme",
+     1
+    ],
+    [
+     "importTheme",
+     1
+    ],
+    [
+     "importTheme:",
+     1
+    ],
+    [
+     "settingTheme",
+     1
+    ],
+    [
+     "adjust masking: %g dB",
+     1
+    ],
+    [
+     "adjust masking short: %g dB",
+     1
+    ],
+    [
+     "the only masking for short blocks",
+     1
+    ],
+    [
+     "the only masking",
+     1
+    ],
+    [
+     "   adjust masking bass=%g dB, alto=%g dB, treble=%g dB, ",
+     1
+    ],
+    [
+     "using temporal masking effect: %s",
+     1
+    ],
+    [
+     "interchannel masking ratio: %g",
+     1
+    ],
+    [
+     "@\"MMThemeManager\"",
+     1
+    ],
+    [
+     "_lame_get_maskingadjust",
+     1
+    ],
+    [
+     "_lame_get_maskingadjust_short",
+     1
+    ],
+    [
+     "_lame_set_maskingadjust",
+     1
+    ],
+    [
+     "_lame_set_maskingadjust_short",
+     1
+    ],
+    [
+     "_vbrpsy_compute_masking_l",
+     1
+    ],
+    [
+     "_vbrpsy_skip_masking_s",
+     1
+    ],
+    [
+     "_vbrpsy_compute_masking_s",
+     1
+    ],
+    [
+     "shsojnjqfnz/Build/Intermediates.noindex/MiYou.build/Debug-iphoneos/MiYou.build/Objects-normal/arm64/ThemeManager.o",
+     1
+    ],
+    [
+     "MiYou/ThemeManager.m",
+     1
+    ],
+    [
+     "sojnjqfnz/Build/Intermediates.noindex/MiYou.build/Debug-iphoneos/MiYou.build/Objects-normal/arm64/MYThemesViewController.o",
+     1
+    ],
+    [
+     "MiYou/MYThemesViewController.m",
+     1
+    ],
+    [
+     "sojnjqfnz/Build/Intermediates.noindex/MiYou.build/Debug-iphoneos/MiYou.build/Objects-normal/arm64/WCThemeMgr.o",
+     1
+    ],
+    [
+     "MiYou/WCThemeMgr.m",
+     1
+    ],
+    [
+     "MiYou/WCThemeMgr.h",
+     1
+    ]
+   ]
+  },
+  {
+   "path": "D:\\deepseek harness\\wechat\\MisakaHelper.dylib",
+   "size": 51163406,
+   "sha256": "cf69088e6f059e9624b48a1218d0b89515ef1951242181e07655448586666064",
+   "magic": "cffaedfe0c000001",
+   "png": [],
+   "jpeg": [],
+   "webp": [],
+   "strings": [
+    [
+     "imageNamed:",
+     1
+    ],
+    [
+     "T@\"PJPluginDataModel\",&,N,V_theme777",
+     1
+    ]
+   ]
+  },
+  {
+   "path": "D:\\deepseek harness\\wechat\\斗图助手3.1-5.dylib",
+   "size": 5182481,
+   "sha256": "a9041b55b4c8f717e848a085b03a9369850b774845f8e77721282f3fff17f7ac",
+   "magic": "cffaedfe0c000001",
+   "png": [],
+   "jpeg": [],
+   "webp": [],
+   "strings": [
+    [
+     "_mj_localizedStringForKey:value:.bundle",
+     2
+    ],
+    [
+     "imageNamed:",
+     1
+    ]
+   ]
+  },
+  {
+   "path": "D:\\deepseek harness\\wechat\\PKCWeChatTools.dylib",
+   "size": 2921757,
+   "sha256": "8d490702446fb09d62bbafc8968801d428eb15315046cb00ad42e041b9b17c9e",
+   "magic": "cffaedfe0c000001",
+   "png": [],
+   "jpeg": [],
+   "webp": [],
+   "strings": [
+    [
+     "imageNamed:",
+     2
+    ],
+    [
+     "diyPKCBgDark.png",
+     1
+    ],
+    [
+     "diyPKCBg.png",
+     1
+    ],
+    [
+     "diyTx.png",
+     1
+    ],
+    [
+     "pkc_ico_1.png",
+     1
+    ],
+    [
+     "pkc_ico_2.png",
+     1
+    ],
+    [
+     "pkc_ico_3.png",
+     1
+    ],
+    [
+     "pkc_ico_4.png",
+     1
+    ],
+    [
+     "pkc_ico_5.png",
+     1
+    ],
+    [
+     "pkc_ico_6.png",
+     1
+    ],
+    [
+     "pkc_ico_7.png",
+     1
+    ],
+    [
+     "diyWxBg.png",
+     1
+    ],
+    [
+     "diyWxBgDark.png",
+     1
+    ],
+    [
+     "diyMeBg.png",
+     1
+    ],
+    [
+     "diyMeBgDark.png",
+     1
+    ],
+    [
+     "diyPyqBg.png",
+     1
+    ],
+    [
+     "diyPyqBgDark.png",
+     1
+    ],
+    [
+     "diyFxBg.png",
+     1
+    ],
+    [
+     "diyFxBgDark.png",
+     1
+    ],
+    [
+     "diyTxlBg.png",
+     1
+    ],
+    [
+     "diyTxlBgDark.png",
+     1
+    ],
+    [
+     "diyMsgBg.png",
+     1
+    ],
+    [
+     "diyMsgBgDark.png",
+     1
+    ],
+    [
+     "wxzt.png",
+     1
+    ],
+    [
+     "PKC/IMG/wxzt.png",
+     1
+    ],
+    [
+     "diyYYCaIcon.png",
+     1
+    ],
+    [
+     "diyYYCaIconPro.png",
+     1
+    ],
+    [
+     "%@/diyYYCaIcon.png",
+     1
+    ],
+    [
+     "%@/diyYYCaIconPro.png",
+     1
+    ],
+    [
+     "pkcbz%d.png",
+     1
+    ],
+    [
+     "pkcbzDark%d.png",
+     1
+    ],
+    [
+     "https://raw.githubusercontent.com/curtinlv/PKCUpdateLog/main/ico/pkc%d.png",
+     1
+    ],
+    [
+     "pkc%d.png",
+     1
+    ],
+    [
+     "http://168.138.187.36:39901/raw/curtinlv/PKCUpdateLog/main/ico/pkc_ico_%d.png",
+     1
+    ],
+    [
+     "pkc_ico_%d.png",
+     1
+    ],
+    [
+     "%@/pkcbzDark%lu.png",
+     1
+    ],
+    [
+     "%@/pkcbz%lu.png",
+     1
+    ],
+    [
+     "pkc_live.jpg",
+     1
+    ],
+    [
+     "LivePhoto/pkc_live.jpg",
+     1
+    ],
+    [
+     "2a3ec5?pictype=scale&from=30113&version=3.3.3.3&fname=%E8%AF%B4%E8%AF%9D%E5%A4%AA%E5%95%B0%E5%97%A63.png",
+     1
+    ],
+    [
+     "https://day.app/assets/images/avatar.jpg",
+     1
+    ],
+    [
+     "VoIPBubbleMessageCellView",
+     1
+    ],
+    [
+     "__ZL76_logos_method$_ungrouped$BubbleManager$bubbleInfoWithType$position$isSender$P13BubbleManagerP13objc_selectoryyb",
+     1
+    ],
+    [
+     "__ZL74_logos_orig$_ungrouped$BubbleManager$bubbleInfoWithType$position$isSender$",
+     1
+    ]
+   ]
+  },
+  {
+   "path": "D:\\deepseek harness\\wechat\\wcplugins.dylib",
+   "size": 142849,
+   "sha256": "ad5b6fcd8069c25e3eee6f450d860d56f6b894600c6356149bc1dcd7286373a1",
+   "magic": "cffaedfe0c000001",
+   "png": [],
+   "jpeg": [],
+   "webp": [],
+   "strings": [
+    [
+     "imageNamed:",
+     2
+    ]
+   ]
+  },
+  {
+   "path": "D:\\deepseek harness\\wechat\\WeCallKit.dylib",
+   "size": 106109,
+   "sha256": "3336d94982abd36ea6f3c5ef24affb8e2d19d1a0f8b8d30b7714cfcda2907607",
+   "magic": "cffaedfe0c000001",
+   "png": [],
+   "jpeg": [],
+   "webp": [],
+   "strings": []
+  },
+  {
+   "path": "D:\\deepseek harness\\wechat\\好友添加时间 2.dylib",
+   "size": 106125,
+   "sha256": "3b9ca42ff37370b9991d03f57e496209ca13a960276c87a66fc6474c917804c2",
+   "magic": "cffaedfe0c000001",
+   "png": [],
+   "jpeg": [],
+   "webp": [],
+   "strings": []
+  },
+  {
+   "path": "D:\\deepseek harness\\wechat\\WCMyPageInfoCenter.dylib",
+   "size": 258269,
+   "sha256": "af049e9e0af7d87bdffefbcbed9c7139780c3ec530cdf9717b5e660607ffbb2f",
+   "magic": "cffaedfe0c000001",
+   "png": [],
+   "jpeg": [],
+   "webp": [],
+   "strings": []
+  }
+ ],
+ "generated_by": "scan_images.py (stdlib)"
+}

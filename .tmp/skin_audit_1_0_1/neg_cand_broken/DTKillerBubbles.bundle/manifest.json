@@ -1,0 +1,328 @@
+{
+  "schema": 2,
+  "name": "DTKiller Bubble Skins",
+  "identifier": "com.dt.dtkiller.bubbles",
+  "version": "1.0.1",
+  "license": "CC0-1.0 (original artwork; not Tencent assets)",
+  "baseSize": [
+    80,
+    56
+  ],
+  "geometry": {
+    "canvas": [
+      80,
+      56
+    ],
+    "body": [
+      72.0,
+      56
+    ],
+    "tail": {
+      "shape": "single bezier tail, mirrored for other",
+      "rangeY": [
+        34.0,
+        54.5
+      ],
+      "tip": [
+        78.6,
+        48.5
+      ],
+      "baseX": 70.0,
+      "tailLength": 6.6,
+      "canvasMarginRight": 1.4,
+      "sides": {
+        "self": "right",
+        "other": "left"
+      },
+      "insideFixedCaps": true
+    },
+    "bodyRadius": {
+      "wx8": 8.0,
+      "qq9": 10.0
+    }
+  },
+  "compat": {
+    "legacyNormalAliases": false,
+    "note": "1.0.1 deliberately ships no normal.png / normal@2x.png / normal@3x.png. A legacy loader that reads a single image at scale=1 would mis-read @2x/@3x caps by 2x/3x. Loaders MUST honour the @2x/@3x suffix (UIImage imageWithData:scale:) and the capInsets below; otherwise this bundle must not be used.",
+    "requiresScaleAwareLoader": true,
+    "minimumLoader": "DTBubbleSkin 1.0.1 (assets/review-1.0.1/reference)"
+  },
+  "colorContract": {
+    "standard": "WCAG 2.1 contrast ratio, normal text >= 4.5:1",
+    "light": "dark text",
+    "highlight": "dark text",
+    "dark": "light text",
+    "highlight_dark": "light text",
+    "consumer": "variant.textColor[appearance].color is the colour the cell must apply to the message label; the manifest is the only source of truth, do not hard-code white/black."
+  },
+  "skins": {
+    "wx8": {
+      "displayName": "微信 8 风格（原创近似）",
+      "radius": 8.0,
+      "variants": {
+        "self": {
+          "capInsets": [
+            18,
+            18,
+            24,
+            28
+          ],
+          "resizingMode": "stretch",
+          "tailSide": "right",
+          "stretchArea": [
+            18,
+            18,
+            34,
+            14
+          ],
+          "textColor": {
+            "light": {
+              "color": "#191919",
+              "minContrast": 12.03,
+              "against": "#95EB69",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            },
+            "dark": {
+              "color": "#F2F2F7",
+              "minContrast": 6.79,
+              "against": "#2F5D45",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            },
+            "highlight": {
+              "color": "#191919",
+              "minContrast": 10.22,
+              "against": "#86DA5E",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            },
+            "highlight_dark": {
+              "color": "#F2F2F7",
+              "minContrast": 8.28,
+              "against": "#284F3B",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            }
+          },
+          "images": {
+            "light": {
+              "1x": "bubble_self_light.png",
+              "2x": "bubble_self_light@2x.png",
+              "3x": "bubble_self_light@3x.png"
+            },
+            "dark": {
+              "1x": "bubble_self_dark.png",
+              "2x": "bubble_self_dark@2x.png",
+              "3x": "bubble_self_dark@3x.png"
+            },
+            "highlight": {
+              "1x": "bubble_self_highlight.png",
+              "2x": "bubble_self_highlight@2x.png",
+              "3x": "bubble_self_highlight@3x.png"
+            },
+            "highlight_dark": {
+              "1x": "bubble_self_highlight_dark.png",
+              "2x": "bubble_self_highlight_dark@2x.png",
+              "3x": "bubble_self_highlight_dark@3x.png"
+            }
+          }
+        },
+        "other": {
+          "capInsets": [
+            18,
+            28,
+            24,
+            18
+          ],
+          "resizingMode": "stretch",
+          "tailSide": "left",
+          "stretchArea": [
+            28,
+            18,
+            34,
+            14
+          ],
+          "textColor": {
+            "light": {
+              "color": "#191919",
+              "minContrast": 17.43,
+              "against": "#FEFEFE",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            },
+            "dark": {
+              "color": "#F2F2F7",
+              "minContrast": 12.49,
+              "against": "#2C2C2E",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            },
+            "highlight": {
+              "color": "#191919",
+              "minContrast": 15.57,
+              "against": "#F1F1F1",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            },
+            "highlight_dark": {
+              "color": "#F2F2F7",
+              "minContrast": 13.71,
+              "against": "#252527",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            }
+          },
+          "images": {
+            "light": {
+              "1x": "bubble_other_light.png",
+              "2x": "bubble_other_light@2x.png",
+              "3x": "bubble_other_light@3x.png"
+            },
+            "dark": {
+              "1x": "bubble_other_dark.png",
+              "2x": "bubble_other_dark@2x.png",
+              "3x": "bubble_other_dark@3x.png"
+            },
+            "highlight": {
+              "1x": "bubble_other_highlight.png",
+              "2x": "bubble_other_highlight@2x.png",
+              "3x": "bubble_other_highlight@3x.png"
+            },
+            "highlight_dark": {
+              "1x": "bubble_other_highlight_dark.png",
+              "2x": "bubble_other_highlight_dark@2x.png",
+              "3x": "bubble_other_highlight_dark@3x.png"
+            }
+          }
+        }
+      }
+    },
+    "qq9": {
+      "displayName": "QQ 风格（原创近似，浅色可读版）",
+      "radius": 10.0,
+      "variants": {
+        "self": {
+          "capInsets": [
+            20,
+            20,
+            24,
+            30
+          ],
+          "resizingMode": "stretch",
+          "tailSide": "right",
+          "stretchArea": [
+            20,
+            20,
+            30,
+            12
+          ],
+          "textColor": {
+            "light": {
+              "color": "#191919",
+              "minContrast": 12.84,
+              "against": "#B7E2FF",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            },
+            "dark": {
+              "color": "#F2F2F7",
+              "minContrast": 10.82,
+              "against": "#1B394D",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            },
+            "highlight": {
+              "color": "#191919",
+              "minContrast": 11.41,
+              "against": "#A3D7F8",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            },
+            "highlight_dark": {
+              "color": "#F2F2F7",
+              "minContrast": 12.09,
+              "against": "#173143",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            }
+          },
+          "images": {
+            "light": {
+              "1x": "bubble_self_light.png",
+              "2x": "bubble_self_light@2x.png",
+              "3x": "bubble_self_light@3x.png"
+            },
+            "dark": {
+              "1x": "bubble_self_dark.png",
+              "2x": "bubble_self_dark@2x.png",
+              "3x": "bubble_self_dark@3x.png"
+            },
+            "highlight": {
+              "1x": "bubble_self_highlight.png",
+              "2x": "bubble_self_highlight@2x.png",
+              "3x": "bubble_self_highlight@3x.png"
+            },
+            "highlight_dark": {
+              "1x": "bubble_self_highlight_dark.png",
+              "2x": "bubble_self_highlight_dark@2x.png",
+              "3x": "bubble_self_highlight_dark@3x.png"
+            }
+          }
+        },
+        "other": {
+          "capInsets": [
+            20,
+            30,
+            24,
+            20
+          ],
+          "resizingMode": "stretch",
+          "tailSide": "left",
+          "stretchArea": [
+            30,
+            20,
+            30,
+            12
+          ],
+          "textColor": {
+            "light": {
+              "color": "#191919",
+              "minContrast": 17.43,
+              "against": "#FEFEFE",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            },
+            "dark": {
+              "color": "#F2F2F7",
+              "minContrast": 12.49,
+              "against": "#2C2C2E",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            },
+            "highlight": {
+              "color": "#191919",
+              "minContrast": 15.57,
+              "against": "#F1F1F1",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            },
+            "highlight_dark": {
+              "color": "#F2F2F7",
+              "minContrast": 13.71,
+              "against": "#252527",
+              "wcag": "AA-normal-text (>=4.5:1)"
+            }
+          },
+          "images": {
+            "light": {
+              "1x": "bubble_other_light.png",
+              "2x": "bubble_other_light@2x.png",
+              "3x": "bubble_other_light@3x.png"
+            },
+            "dark": {
+              "1x": "bubble_other_dark.png",
+              "2x": "bubble_other_dark@2x.png",
+              "3x": "bubble_other_dark@3x.png"
+            },
+            "highlight": {
+              "1x": "bubble_other_highlight.png",
+              "2x": "bubble_other_highlight@2x.png",
+              "3x": "bubble_other_highlight@3x.png"
+            },
+            "highlight_dark": {
+              "1x": "bubble_other_highlight_dark.png",
+              "2x": "bubble_other_highlight_dark@2x.png",
+              "3x": "bubble_other_highlight_dark@3x.png"
+            }
+          }
+        }
+      }
+    }
+  }
+}

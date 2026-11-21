@@ -1,0 +1,59 @@
+## 气泡 : 0
+
+## 皮肤 : 0
+
+## 主题 : 0
+
+## 样式 : 0
+
+## 圆角 : 0
+
+## 描边 : 0
+
+## 背景 : 0
+
+## 深色 : 0
+
+## 浅色 : 0
+
+## 聊天背景 : 0
+
+## 字体 : 0
+
+## bubble : 2
+    bubbleFolderName
+    setM_bubbleType:
+
+## Bubble : 8
+    initBubbleFolderSettings
+    onTapBubbleCell:
+    setBubbleFolderName:
+    setInitBubbleFolderSettings:
+    WCPureExtensionBubbleSettingsController
+    JaBi_ChatRoom_Bubble_Text_
+    da_ChatRoom_Bubble_
+    tu_ChatRoom_Bubble_
+
+## skin : 15
+    Masking not supported
+    temporal complexity masking
+    spatial complexity masking
+    inter masking
+    adjust masking: %g dB
+    adjust masking short: %g dB
+    the only masking for short blocks
+    the only masking
+       adjust masking bass=%g dB, alto=%g dB, treble=%g dB, sfb21=%g dB
+    using temporal masking effect: %s
+    interchannel masking ratio: %g
+    vbrpsy_compute_masking_l
+    vbrpsy_compute_masking_s
+    skingadjust
+    askingadjust
+
+## Skin : 0
+
+## theme : 0
+
+## Theme : 0
+
